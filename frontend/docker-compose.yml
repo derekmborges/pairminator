@@ -1,0 +1,12 @@
+version: "3.2"
+services:
+  frontend:
+    build:
+      context: ./
+    environment:
+      - WATCHPACK_POLLING="true"
+    volumes:
+      - /app/node_modules
+      - ./src:/app/src
+    ports:
+      - "8080:3000"
