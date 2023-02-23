@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.css";
-import { PairminatorApp } from "./Components/PairminatorApp";
+import { PairminatorApp } from "./components/PairminatorApp";
 
 function App() {
   return <PairminatorApp />;
