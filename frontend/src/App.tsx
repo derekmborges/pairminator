@@ -1,9 +1,9 @@
 import React from "react";
 import "./App.css";
-import { Dashboard } from "./Components/Dashboard";
+import { PairminatorApp } from "./Components/PairminatorApp";
 
 function App() {
-  return <Dashboard />;
+  return <PairminatorApp />;
 }
 
 export default App;
