@@ -1,8 +1,8 @@
 import React from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { History } from './History'
 import { Pairees } from './Pairees'
 import { Pairs } from './Pairs'
+import { History } from './History'
 
 export const AppRouter = () => {
   return (
