@@ -1,9 +1,11 @@
 import { createContext, useContext, useState } from "react";
 import { Pairee } from "../models/pair";
+import { cloneDeep } from 'lodash'
 
 export interface PairminatorContextT {
     pairees: Pairee[];
-    addPairee: (pairee: Pairee) => void;
+    addPairee: (name: string) => void;
+    updatePairee: (id: number, updatedName: string) => void;
 }
 
 export const PairminatorContext = createContext<PairminatorContextT | undefined>(undefined);
@@ -23,13 +25,32 @@ interface Props {
 export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const [pairees, setPairees] = useState<Pairee[]>([]);
 
-    const addPairee = (pairee: Pairee) => {
-        setPairees([...pairees, pairee]);
+    const addPairee = (name: string) => {
+        const newId: number = pairees.length > 0
+            ? Math.max(...(pairees.map(p => p.id))) + 1
+            : 1;
+
+        const newPairee: Pairee = {
+            id: newId,
+            name,
+        }
+        setPairees([...pairees, newPairee]);
+    }
+
+    const updatePairee = (id: number, updatedName: string) => {
+        const pairee = pairees.find(p => p.id === id);
+        if (pairee !== undefined) {
+            const paireesCopy: Pairee[] = cloneDeep(pairees);
+            const index = paireesCopy.findIndex(p => p.id === pairee.id);
+            paireesCopy[index].name = updatedName
+            setPairees([...paireesCopy])
+        }
     }
 
     const contextValue: PairminatorContextT = {
         pairees,
         addPairee,
+        updatePairee
     };
 
     return (
