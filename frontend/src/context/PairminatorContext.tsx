@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { Lane, Pair, Pairee } from "../models/interface";
+import { Assignment, Lane, Pair, Pairee } from "../models/interface";
 import { cloneDeep } from 'lodash'
 import { PairingState } from "../models/enum";
 
@@ -20,6 +20,8 @@ export interface PairminatorContextT {
     lanes: Lane[];
     generatePairs: () => void;
     resetCurrentPairs: () => void;
+    assignCurrentPairs: () => void;
+    assignmentHistory: Assignment[];
 }
 
 export const PairminatorContext = createContext<PairminatorContextT | undefined>(undefined);
@@ -106,8 +108,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             const pair: Pair = {
                 pairee1,
                 pairee2,
-                lane,
-                date: new Date()
+                lane
             }
             pairs.push(pair)
             freeLanes.splice(0, 1)
@@ -120,6 +121,18 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const resetCurrentPairs = () => {
         setPairingState(PairingState.INITIAL)
         setCurrentPairs(null)
+    }
+
+    const [assignmentHistory, setAssignmentHistory] = useState<Assignment[]>([])
+    const assignCurrentPairs = () => {
+        if (currentPairs) {
+            const newAssignment: Assignment = {
+                pairs: currentPairs,
+                date: new Date()
+            }
+            setAssignmentHistory([...assignmentHistory, newAssignment])
+            setPairingState(PairingState.ASSIGNED)
+        }
     }
     /* END PAIRS */
     
@@ -134,6 +147,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         lanes,
         generatePairs,
         resetCurrentPairs,
+        assignCurrentPairs,
+        assignmentHistory,
     };
 
     return (

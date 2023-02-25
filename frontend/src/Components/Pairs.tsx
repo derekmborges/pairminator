@@ -20,6 +20,7 @@ export const Pairs = (): JSX.Element => {
     currentPairs,
     generatePairs,
     resetCurrentPairs,
+    assignCurrentPairs
   } = usePairminatorContext()
 
   return (
@@ -69,7 +70,7 @@ export const Pairs = (): JSX.Element => {
                 {pairingState === PairingState.GENERATING && (
                   <LinearProgress color='inherit' sx={{ mt: 2 }} />
                 )}
-                {pairingState === PairingState.GENERATED && currentPairs && (
+                {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && currentPairs && (
                   <Grid2 container px={0} spacing={1}>
                     {currentPairs.map((pair: Pair) => (
                       <Grid2>
@@ -81,7 +82,7 @@ export const Pairs = (): JSX.Element => {
                             size='medium'
                             label={pair.pairee1.name}
                             variant='filled'
-                            color='primary'
+                            color={pairingState === PairingState.ASSIGNED ? 'success' : 'primary'}
                             sx={{
                               width: 90,
                               height: 35,
@@ -93,7 +94,7 @@ export const Pairs = (): JSX.Element => {
                               size='medium'
                               label={pair.pairee2.name}
                               variant='filled'
-                              color='primary'
+                              color={pairingState === PairingState.ASSIGNED ? 'success' : 'primary'}
                               sx={{
                                 width: 90,
                                 height: 35,
@@ -134,6 +135,7 @@ export const Pairs = (): JSX.Element => {
                       <Button
                         color="success"
                         variant='contained'
+                        onClick={assignCurrentPairs}
                       >
                         Assign
                       </Button>
