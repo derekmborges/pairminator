@@ -1,7 +1,13 @@
-import { createContext, useContext, useState } from "react";
-import { Pair, Pairee } from "../models/interface";
+import { createContext, useContext, useEffect, useState } from "react";
+import { Lane, Pair, Pairee } from "../models/interface";
 import { cloneDeep } from 'lodash'
 import { PairingState } from "../models/enum";
+
+const getNextId = (ids: number[]): number => {
+    return ids.length > 0
+        ? Math.max(...ids) + 1
+        : 1;
+}
 
 export interface PairminatorContextT {
     pairees: Pairee[];
@@ -10,8 +16,10 @@ export interface PairminatorContextT {
     availablePairees: Pairee[];
     togglePaireeAvailability: (pairee: Pairee) => void;
     pairingState: PairingState;
-    currentPairs: Pair[];
+    currentPairs: Pair[] | null;
+    lanes: Lane[];
     generatePairs: () => void;
+    resetCurrentPairs: () => void;
 }
 
 export const PairminatorContext = createContext<PairminatorContextT | undefined>(undefined);
@@ -35,12 +43,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const [availablePairees, setAvailablePairees] = useState<Pairee[]>(pairees);
     
     const addPairee = (name: string) => {
-        const newId: number = pairees.length > 0
-        ? Math.max(...(pairees.map(p => p.id))) + 1
-        : 1;
-        
         const newPairee: Pairee = {
-            id: newId,
+            id: getNextId(pairees.map(p => p.id)),
             name,
         }
         setPairees([...pairees, newPairee]);
@@ -72,10 +76,50 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     /* BEGIN PAIRS */
     const [pairingState, setPairingState] = useState<PairingState>(PairingState.INITIAL)
-    const [currentPairs, setCurrentPairs] = useState<Pair[]>([]);
+    const [currentPairs, setCurrentPairs] = useState<Pair[] | null>(null);
+    const [lanes, setLanes] = useState<Lane[]>([]);
+    
+    useEffect(() => {
+        const lanesNeeded: number = Math.ceil(availablePairees.length / 2)
+        
+        let lanes: Lane[] = []
+        for (let i=0; i < lanesNeeded; i++) {
+            const lane: Lane = {
+                id: getNextId(lanes.map(l => l.id)),
+                name: `Lane ${i+1}`
+            }
+            lanes.push(lane)
+        }
+        setLanes([...lanes])
+    }, [availablePairees])
 
     const generatePairs = () => {
         setPairingState(PairingState.GENERATING)
+
+        let pairs: Pair[] = []
+        let available: Pairee[] = availablePairees
+        let freeLanes: Lane[] = lanes
+        while (available.length) {
+            const pairee1: Pairee = available[0]
+            const pairee2: Pairee | undefined = available.at(1)
+            const lane: Lane = freeLanes[0]
+            const pair: Pair = {
+                pairee1,
+                pairee2,
+                lane,
+                date: new Date()
+            }
+            pairs.push(pair)
+            freeLanes.splice(0, 1)
+            available.splice(0, pairee2 !== undefined ? 2 : 1)
+        }
+        setCurrentPairs([...pairs])
+        setPairingState(PairingState.GENERATED)
+    }
+
+    const resetCurrentPairs = () => {
+        setPairingState(PairingState.INITIAL)
+        setCurrentPairs(null)
     }
     /* END PAIRS */
     
@@ -87,7 +131,9 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         togglePaireeAvailability,
         pairingState,
         currentPairs,
+        lanes,
         generatePairs,
+        resetCurrentPairs,
     };
 
     return (

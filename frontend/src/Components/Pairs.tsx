@@ -7,7 +7,7 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
 import { usePairminatorContext } from '../context/PairminatorContext'
-import { Pairee } from '../models/interface'
+import { Pair, Pairee } from '../models/interface'
 import { PairingState } from '../models/enum'
 import LinearProgress from '@mui/material/LinearProgress'
 
@@ -18,6 +18,7 @@ export const Pairs = (): JSX.Element => {
     togglePaireeAvailability,
     pairingState,
     currentPairs,
+    lanes,
     generatePairs
   } = usePairminatorContext()
 
@@ -34,14 +35,14 @@ export const Pairs = (): JSX.Element => {
                     <Typography variant='body1'>
                       No pairs have been generated yet.
                     </Typography>
-                    <Divider sx={{ my: 1 }} />
+                    <Divider sx={{ my: 3 }} />
                     <Typography component="h2" variant="h6">
                       Who's available to Pair? (select to toggle)
                     </Typography>
                     {!!pairees.length ? (
                       <Grid2 container px={0} pt={1} spacing={1}>
                           {pairees.map((pairee: Pairee) => (
-                            <Grid2>
+                            <Grid2 key={pairee.id}>
                               <Chip
                                 component={Button}
                                 size='medium'
@@ -54,13 +55,13 @@ export const Pairs = (): JSX.Element => {
                                   height: 35,
                                   fontSize: 14
                                 }}
-                                />
+                              />
                             </Grid2>
                           ))}
                       </Grid2>
                     ) : (
                       <Typography variant='body2'>
-                        Add 2 or more pairees to generate pairs
+                        Go add pairees on the Pairees page.
                       </Typography>
                     )}
                   </>
@@ -68,18 +69,52 @@ export const Pairs = (): JSX.Element => {
                 {pairingState === PairingState.GENERATING && (
                   <LinearProgress color='inherit' sx={{ mt: 2 }} />
                 )}
-                {pairingState === PairingState.GENERATED && (
-                  <></>
+                {pairingState === PairingState.GENERATED && currentPairs && (
+                  <Grid2 container px={0} spacing={1}>
+                    {currentPairs.map((pair: Pair) => (
+                      <Grid2>
+                        <Stack direction='column' alignItems='center' spacing={1}>
+                          <Typography>
+                            {pair.lane.name}
+                          </Typography>
+                          <Chip
+                            size='medium'
+                            label={pair.pairee1.name}
+                            variant='filled'
+                            color='primary'
+                            sx={{
+                              width: 90,
+                              height: 35,
+                              fontSize: 14
+                            }}
+                          />
+                          {pair.pairee2 && (
+                            <Chip
+                              size='medium'
+                              label={pair.pairee2.name}
+                              variant='filled'
+                              color='primary'
+                              sx={{
+                                width: 90,
+                                height: 35,
+                                fontSize: 14
+                              }}
+                            />
+                          )}
+                        </Stack>
+                      </Grid2>
+                    ))}
+                  </Grid2>
                 )}
 
                 <Stack direction="row" pt={3} pb={2} spacing={2}>
-                  {pairingState === PairingState.INITIAL && (
+                  {[PairingState.INITIAL, PairingState.GENERATING].includes(pairingState) && (
                     <Stack direction='row' alignItems='center' spacing={2}>
                       <Button
                         color="primary"
                         variant='contained'
                         size='large'
-                        disabled={availablePairees.length < 2}
+                        disabled={availablePairees.length < 2 || pairingState === PairingState.GENERATING}
                         onClick={generatePairs}
                       >
                         Generate
@@ -87,7 +122,7 @@ export const Pairs = (): JSX.Element => {
                       {availablePairees.length < 2 && (
                         <Typography
                           variant='caption'
-                          color='error'
+                          color='warning.dark'
                         >
                           2 or more pairees must be available to generate pairs.
                         </Typography>

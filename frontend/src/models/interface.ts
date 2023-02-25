@@ -11,7 +11,7 @@ export interface Lane {
 
 export interface Pair {
     pairee1: Pairee;
-    pairee2: Pairee;
+    pairee2?: Pairee;
     lane: Lane;
     date: Date;
 }
