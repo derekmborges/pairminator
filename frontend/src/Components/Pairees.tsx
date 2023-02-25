@@ -156,6 +156,11 @@ export const Pairees = (): JSX.Element => {
                         placeholder='Name (min. 2 chars)'
                         value={newPaireeName}
                         onChange={(e) => setNewPaireeName(e.target.value)}
+                        onKeyUp={(e) => {
+                            if (e.key === 'Enter' && newPaireeName.length >= 2) {
+                                add()
+                            }
+                        }}
                     />
                 </Box>
                 <Box my={2}>
