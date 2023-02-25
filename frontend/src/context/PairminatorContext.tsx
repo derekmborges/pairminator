@@ -97,8 +97,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         setPairingState(PairingState.GENERATING)
 
         let pairs: Pair[] = []
-        let available: Pairee[] = availablePairees
-        let freeLanes: Lane[] = lanes
+        let available: Pairee[] = cloneDeep(availablePairees)
+        let freeLanes: Lane[] = cloneDeep(lanes)
         while (available.length) {
             const pairee1: Pairee = available[0]
             const pairee2: Pairee | undefined = available.at(1)

@@ -18,8 +18,8 @@ export const Pairs = (): JSX.Element => {
     togglePaireeAvailability,
     pairingState,
     currentPairs,
-    lanes,
-    generatePairs
+    generatePairs,
+    resetCurrentPairs,
   } = usePairminatorContext()
 
   return (
@@ -140,6 +140,7 @@ export const Pairs = (): JSX.Element => {
                       <Button
                         color="warning"
                         variant='contained'
+                        onClick={resetCurrentPairs}
                       >
                         Reset
                       </Button>
