@@ -8,7 +8,6 @@ import Container from "@mui/system/Container";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { BrowserRouter } from "react-router-dom";
 import { AppRouter } from "./AppRouter";
-import { Sidebar } from "./Sidebar";
 import { PairminatorProvider } from "../context/PairminatorContext";
 
 export const PairminatorApp = (): JSX.Element => {
@@ -35,7 +34,6 @@ export const PairminatorApp = (): JSX.Element => {
               </Typography>
             </Toolbar>
           </AppBar>
-          <Sidebar />
           <Box
             component="main"
             sx={{
@@ -49,7 +47,7 @@ export const PairminatorApp = (): JSX.Element => {
             }}
           >
             <Toolbar />
-            <Container maxWidth="lg" sx={{ my: 3 }}>
+            <Container maxWidth="xl" sx={{ my: 3 }}>
               <Grid2 container spacing={3}>
                 <AppRouter />
               </Grid2>

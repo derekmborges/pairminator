@@ -28,6 +28,15 @@ export const Sidebar = (): JSX.Element => {
             <Toolbar />
             <List component="nav">
                 <ListItemButton
+                    onClick={() => navigate({ pathname: '/dashboard' })}
+                    selected={location.pathname === '/dashboard'}
+                >
+                    <ListItemIcon>
+                        <PeopleIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Dashboard" />
+                </ListItemButton>
+                <ListItemButton
                     onClick={() => navigate({ pathname: '/pairs' })}
                     selected={location.pathname === '/pairs' || location.pathname === '/'}
                 >

@@ -1,16 +1,11 @@
 import React from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { Pairees } from './Pairees'
-import { Pairs } from './Pairs'
-import { History } from './History'
+import { Dashboard } from './Dashboard'
 
 export const AppRouter = () => {
   return (
     <Routes>
-        <Route path='/' element={<Pairs />} />
-        <Route path='/pairs' element={<Pairs />} />
-        <Route path='/pairees' element={<Pairees />} />
-        <Route path='/history' element={<History />} />
+        <Route path='/' element={<Dashboard />} />
     </Routes>
   )
 }
