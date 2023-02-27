@@ -1,8 +1,9 @@
+import React from 'react'
+import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
-import React from 'react'
 import { usePairminatorContext } from '../context/PairminatorContext'
 import { Assignment, Pair } from '../models/interface'
 
@@ -17,26 +18,36 @@ export const History = (): JSX.Element => {
                     Pairing History
                 </Typography>
 
-                {assignmentHistory
-                  .sort((a, b) => b.date.valueOf() - a.date.valueOf())
-                  .map((assignment: Assignment) => (
-                    <>
-                      <Typography variant='subtitle2'>
-                        {assignment.date.toISOString()}
-                      </Typography>
-                      {assignment.pairs.map((pair: Pair) => (
-                        <Stack direction='row'>
-                          <Typography>{pair.pairee1.name}</Typography>
-                          {pair.pairee2 && (
-                            <Typography>
-                              &nbsp;&&nbsp;{pair.pairee2.name}
+                {!assignmentHistory.length && (
+                  <Typography variant='subtitle1'>
+                    Assign pairs to see history.
+                  </Typography>
+                )}
+
+                <Stack spacing={2}>
+                  {assignmentHistory
+                    .sort((a, b) => b.date.valueOf() - a.date.valueOf())
+                    .map((assignment: Assignment) => (
+                      <Box>
+                        <Typography variant='h6'>
+                          {assignment.date.toLocaleString()}
+                        </Typography>
+                        {assignment.pairs.map((pair: Pair) => (
+                          <Stack direction='row'>
+                            <Typography variant='body1'>
+                              {pair.pairee1.name}
                             </Typography>
-                          )}
-                        </Stack>
-                      ))}
-                    </>
-                  ))
-                }
+                            {pair.pairee2 && (
+                              <Typography variant='body1'>
+                                &nbsp;&&nbsp;{pair.pairee2.name}
+                              </Typography>
+                            )}
+                          </Stack>
+                        ))}
+                      </Box>
+                    ))
+                  }
+                </Stack>
             </Paper>
         </Grid2>
     </>

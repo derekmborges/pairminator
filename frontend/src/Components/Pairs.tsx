@@ -131,22 +131,22 @@ export const Pairs = (): JSX.Element => {
                     </Stack>
                   )}
                   {pairingState === PairingState.GENERATED && (
-                    <>
-                      <Button
-                        color="success"
-                        variant='contained'
-                        onClick={assignCurrentPairs}
-                      >
-                        Assign
-                      </Button>
-                      <Button
-                        color="warning"
-                        variant='contained'
-                        onClick={resetCurrentPairs}
-                      >
-                        Reset
-                      </Button>
-                    </>
+                    <Button
+                      color="success"
+                      variant='contained'
+                      onClick={assignCurrentPairs}
+                    >
+                      Assign
+                    </Button>
+                  )}
+                  {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && (
+                    <Button
+                      color="warning"
+                      variant='contained'
+                      onClick={resetCurrentPairs}
+                    >
+                      Reset
+                    </Button>
                   )}
                 </Stack>
                 
