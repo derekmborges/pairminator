@@ -24,134 +24,132 @@ export const Pairs = (): JSX.Element => {
   } = usePairminatorContext()
 
   return (
-    <>
-        <Grid2 xs={12}>
-            <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                    Current Pairs
-                </Typography>
+    <Grid2 xs={12}>
+        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+            <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                Current Pairs
+            </Typography>
 
-                {pairingState === PairingState.INITIAL && (
-                  <>
-                    <Typography variant='body1'>
-                      No pairs have been generated yet.
-                    </Typography>
-                    <Divider sx={{ my: 3 }} />
-                    <Typography component="h2" variant="h6">
-                      Who's available to Pair? (select to toggle)
-                    </Typography>
-                    {!!pairees.length ? (
-                      <Grid2 container px={0} pt={1} spacing={1}>
-                          {pairees.map((pairee: Pairee) => (
-                            <Grid2 key={pairee.id}>
-                              <Chip
-                                component={Button}
-                                size='medium'
-                                label={pairee.name}
-                                variant={availablePairees.some(p => p.id === pairee.id) ? 'filled' : 'outlined'}
-                                color={availablePairees.some(p => p.id === pairee.id) ? 'success' : 'default'}
-                                onClick={() => togglePaireeAvailability(pairee)}
-                                sx={{
-                                  width: 90,
-                                  height: 35,
-                                  fontSize: 14
-                                }}
-                              />
-                            </Grid2>
-                          ))}
-                      </Grid2>
-                    ) : (
-                      <Typography variant='body2'>
-                        Go add pairees on the Pairees page.
-                      </Typography>
-                    )}
-                  </>
-                )}
-                {pairingState === PairingState.GENERATING && (
-                  <LinearProgress color='inherit' sx={{ mt: 2 }} />
-                )}
-                {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && currentPairs && (
-                  <Grid2 container px={0} spacing={1}>
-                    {currentPairs.map((pair: Pair) => (
-                      <Grid2>
-                        <Stack direction='column' alignItems='center' spacing={1}>
-                          <Typography>
-                            {pair.lane.name}
-                          </Typography>
+            {pairingState === PairingState.INITIAL && (
+              <>
+                <Typography variant='body1'>
+                  No pairs have been generated yet.
+                </Typography>
+                <Divider sx={{ my: 3 }} />
+                <Typography component="h2" variant="h6">
+                  Who's available to Pair? (select to toggle)
+                </Typography>
+                {!!pairees.length ? (
+                  <Grid2 container px={0} pt={1} spacing={1}>
+                      {pairees.map((pairee: Pairee) => (
+                        <Grid2 key={pairee.id}>
                           <Chip
+                            component={Button}
                             size='medium'
-                            label={pair.pairee1.name}
-                            variant='filled'
-                            color={pairingState === PairingState.ASSIGNED ? 'success' : 'primary'}
+                            label={pairee.name}
+                            variant={availablePairees.some(p => p.id === pairee.id) ? 'filled' : 'outlined'}
+                            color={availablePairees.some(p => p.id === pairee.id) ? 'success' : 'default'}
+                            onClick={() => togglePaireeAvailability(pairee)}
                             sx={{
                               width: 90,
                               height: 35,
                               fontSize: 14
                             }}
                           />
-                          {pair.pairee2 && (
-                            <Chip
-                              size='medium'
-                              label={pair.pairee2.name}
-                              variant='filled'
-                              color={pairingState === PairingState.ASSIGNED ? 'success' : 'primary'}
-                              sx={{
-                                width: 90,
-                                height: 35,
-                                fontSize: 14
-                              }}
-                            />
-                          )}
-                        </Stack>
-                      </Grid2>
-                    ))}
+                        </Grid2>
+                      ))}
                   </Grid2>
+                ) : (
+                  <Typography variant='body2'>
+                    Go add pairees on the Pairees page.
+                  </Typography>
                 )}
-
-                <Stack direction="row" pt={3} pb={2} spacing={2}>
-                  {[PairingState.INITIAL, PairingState.GENERATING].includes(pairingState) && (
-                    <Stack direction='row' alignItems='center' spacing={2}>
-                      <Button
-                        color="primary"
-                        variant='contained'
-                        size='large'
-                        disabled={availablePairees.length < 2 || pairingState === PairingState.GENERATING}
-                        onClick={generatePairs}
-                      >
-                        Generate
-                      </Button>
-                      {availablePairees.length < 2 && (
-                        <Typography
-                          variant='caption'
-                          color='warning.dark'
-                        >
-                          2 or more pairees must be available to generate pairs.
-                        </Typography>
+              </>
+            )}
+            {pairingState === PairingState.GENERATING && (
+              <LinearProgress color='inherit' sx={{ mt: 2 }} />
+            )}
+            {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && currentPairs && (
+              <Grid2 container px={0} spacing={1}>
+                {currentPairs.map((pair: Pair) => (
+                  <Grid2>
+                    <Stack direction='column' alignItems='center' spacing={1}>
+                      <Typography>
+                        {pair.lane.name}
+                      </Typography>
+                      <Chip
+                        size='medium'
+                        label={pair.pairee1.name}
+                        variant='filled'
+                        color={pairingState === PairingState.ASSIGNED ? 'success' : 'primary'}
+                        sx={{
+                          width: 90,
+                          height: 35,
+                          fontSize: 14
+                        }}
+                      />
+                      {pair.pairee2 && (
+                        <Chip
+                          size='medium'
+                          label={pair.pairee2.name}
+                          variant='filled'
+                          color={pairingState === PairingState.ASSIGNED ? 'success' : 'primary'}
+                          sx={{
+                            width: 90,
+                            height: 35,
+                            fontSize: 14
+                          }}
+                        />
                       )}
                     </Stack>
-                  )}
-                  {pairingState === PairingState.GENERATED && (
-                    <Button
-                      color="success"
-                      variant='contained'
-                      onClick={assignCurrentPairs}
+                  </Grid2>
+                ))}
+              </Grid2>
+            )}
+
+            <Stack direction="row" pt={3} pb={2} spacing={2}>
+              {[PairingState.INITIAL, PairingState.GENERATING].includes(pairingState) && (
+                <Stack direction='row' alignItems='center' spacing={2}>
+                  <Button
+                    color="primary"
+                    variant='contained'
+                    size='large'
+                    disabled={availablePairees.length < 2 || pairingState === PairingState.GENERATING}
+                    onClick={generatePairs}
+                  >
+                    Generate
+                  </Button>
+                  {availablePairees.length < 2 && (
+                    <Typography
+                      variant='caption'
+                      color='warning.dark'
                     >
-                      Assign
-                    </Button>
-                  )}
-                  {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && (
-                    <Button
-                      color="warning"
-                      variant='contained'
-                      onClick={resetCurrentPairs}
-                    >
-                      Reset
-                    </Button>
+                      2 or more pairees must be available to generate pairs.
+                    </Typography>
                   )}
                 </Stack>
-                
-            </Paper>
-        </Grid2>
-    </>
+              )}
+              {pairingState === PairingState.GENERATED && (
+                <Button
+                  color="success"
+                  variant='contained'
+                  onClick={assignCurrentPairs}
+                >
+                  Assign
+                </Button>
+              )}
+              {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && (
+                <Button
+                  color="warning"
+                  variant='contained'
+                  onClick={resetCurrentPairs}
+                >
+                  Reset
+                </Button>
+              )}
+            </Stack>
+            
+        </Paper>
+    </Grid2>
   )
 }
