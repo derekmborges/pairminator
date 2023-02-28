@@ -29,7 +29,7 @@ export const History = (): JSX.Element => {
         {assignmentHistory
           .sort((a, b) => b.date.valueOf() - a.date.valueOf())
           .map((assignment: Assignment) => (
-            <Box>
+            <Box key={assignment.date.valueOf()}>
               <Typography variant='h6'>
                 {assignment.date.toLocaleString()}
               </Typography>

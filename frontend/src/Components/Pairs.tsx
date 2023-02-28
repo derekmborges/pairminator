@@ -65,7 +65,7 @@ export const Pairs = (): JSX.Element => {
       {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && currentPairs && (
         <Grid2 container px={0} spacing={2}>
           {currentPairs.map((pair: Pair) => (
-            <Grid2>
+            <Grid2 key={pair.lane.id}>
               <Stack direction='column' alignItems='center' spacing={1}>
                 <Typography>
                   {pair.lane.name}
