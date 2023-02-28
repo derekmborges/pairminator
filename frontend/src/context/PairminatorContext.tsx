@@ -95,56 +95,78 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         setLanes([...lanes])
     }, [availablePairees])
 
+    const getHistoricalPairMap = (): Map<number, number[]> => {
+        const pairMap: Map<number, number[]> = new Map<number, number[]>()
+
+        for (let assignment of assignmentHistory) {
+            for (let pair of assignment.pairs) {
+                if (pair.pairee2) {
+                    // add pairee2 to pairee1 ids
+                    const p1Pairs = pairMap.get(pair.pairee1.id)
+                    if (p1Pairs) {
+                        pairMap.set(pair.pairee1.id, [...p1Pairs, pair.pairee2.id])
+                    } else {
+                        pairMap.set(pair.pairee1.id, [pair.pairee2.id])
+                    }
+
+                    // add pairee1 to pairee2 ids
+                    const p2Pairs = pairMap.get(pair.pairee2.id)
+                    if (p2Pairs) {
+                        pairMap.set(pair.pairee2.id, [...p2Pairs, pair.pairee1.id])
+                    } else {
+                        pairMap.set(pair.pairee2.id, [pair.pairee1.id])
+                    }
+                }
+            }
+        }
+
+        return pairMap
+    }
+
     const generatePairs = () => {
         setPairingState(PairingState.GENERATING)
-
         let pairs: Pair[] = []
         let available: Pairee[] = cloneDeep(availablePairees)
         let freeLanes: Lane[] = cloneDeep(lanes)
-        let usedIndices: number[] = []
+
+        const historicalPairsMap = getHistoricalPairMap()
+        console.log('history:', historicalPairsMap)
+
         while (available.length) {
-            console.log('remaining:', available.length)
-            let index1: number
-            let index2: number | undefined = undefined
+            const p1 = available[0]
+            console.log('finding best match for', p1.id, p1.name)
 
-            if (available.length <= 2) {
-                index1 = 0
-                if (available.length === 2) {
-                    index2 = 1
+            // who's paired the least with p1
+            let leastPairedId: number | undefined
+            let leastPairedCount: number | undefined
+            for (let pair of available) {
+                if (pair.id !== p1.id) {
+                    const ids = historicalPairsMap.get(pair.id)
+                    const count = ids?.filter(id => id === p1.id).length || 0
+                    if (leastPairedCount === undefined || count < leastPairedCount) {
+                        leastPairedId = pair.id
+                        leastPairedCount = count
+                    }
                 }
-            } else {
-                console.log(`picking random indexes for 0-${available.length-1}`)
-                index1 = Math.floor(Math.random() * available.length)
-                while (usedIndices.includes(index1)) {
-                    index1 = Math.floor(Math.random() * available.length)
-                }
-                usedIndices.push(index1)
-                
-                index2 = Math.floor(Math.random() * available.length)
-                while (usedIndices.includes(index2)) {
-                    index2 = Math.floor(Math.random() * available.length)
-                }
-                usedIndices.push(index2)
-                console.log(index1, index2)
             }
+            const p2 = available.find(p => p.id === leastPairedId)
+            console.log('matched:', p2?.id, p2?.name)
 
-            const pairee1: Pairee = available[index1]
-            const pairee2: Pairee | undefined = index2 !== undefined ? available.at(index2) : undefined
-            
-            const lane: Lane = freeLanes[0]
+            const lane = freeLanes[0]
             const pair: Pair = {
-                pairee1,
-                pairee2,
+                pairee1: p1,
+                pairee2: p2,
                 lane
             }
             pairs.push(pair)
             freeLanes.splice(0, 1)
 
-            available.splice(index1, 1)
-            if (index2 !== undefined) {
-                available.splice(index2 > 0 ? index2-1 : index2, 1)
+            available.splice(available.indexOf(p1), 1)
+            if (p2 !== undefined) {
+                available.splice(available.indexOf(p2), 1)
             }
         }
+
         setCurrentPairs([...pairs])
         setPairingState(PairingState.GENERATED)
     }

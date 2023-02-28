@@ -46,7 +46,7 @@ export const Pairs = (): JSX.Element => {
                     size='medium'
                     label={pairee.name}
                     variant={availablePairees.some(p => p.id === pairee.id) ? 'filled' : 'outlined'}
-                    color={availablePairees.some(p => p.id === pairee.id) ? 'success' : 'default'}
+                    color={availablePairees.some(p => p.id === pairee.id) ? 'info' : 'default'}
                     onClick={() => togglePaireeAvailability(pairee)}
                   />
                 </Grid2>
@@ -124,7 +124,7 @@ export const Pairs = (): JSX.Element => {
         )}
         {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && (
           <Button
-            color="warning"
+            color="inherit"
             variant='contained'
             size='large'
             onClick={resetCurrentPairs}

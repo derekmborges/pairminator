@@ -34,7 +34,7 @@ export const History = (): JSX.Element => {
                 {assignment.date.toLocaleString()}
               </Typography>
               {assignment.pairs.map((pair: Pair) => (
-                <Stack direction='row'>
+                <Stack direction='row' key={pair.lane.id}>
                   <Typography variant='body1'>
                     {pair.pairee1.name}
                   </Typography>
