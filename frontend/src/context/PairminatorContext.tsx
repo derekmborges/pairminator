@@ -101,9 +101,36 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         let pairs: Pair[] = []
         let available: Pairee[] = cloneDeep(availablePairees)
         let freeLanes: Lane[] = cloneDeep(lanes)
+        let usedIndices: number[] = []
         while (available.length) {
-            const pairee1: Pairee = available[0]
-            const pairee2: Pairee | undefined = available.at(1)
+            console.log('remaining:', available.length)
+            let index1: number
+            let index2: number | undefined = undefined
+
+            if (available.length <= 2) {
+                index1 = 0
+                if (available.length === 2) {
+                    index2 = 1
+                }
+            } else {
+                console.log(`picking random indexes for 0-${available.length-1}`)
+                index1 = Math.floor(Math.random() * available.length)
+                while (usedIndices.includes(index1)) {
+                    index1 = Math.floor(Math.random() * available.length)
+                }
+                usedIndices.push(index1)
+                
+                index2 = Math.floor(Math.random() * available.length)
+                while (usedIndices.includes(index2)) {
+                    index2 = Math.floor(Math.random() * available.length)
+                }
+                usedIndices.push(index2)
+                console.log(index1, index2)
+            }
+
+            const pairee1: Pairee = available[index1]
+            const pairee2: Pairee | undefined = index2 !== undefined ? available.at(index2) : undefined
+            
             const lane: Lane = freeLanes[0]
             const pair: Pair = {
                 pairee1,
@@ -112,7 +139,11 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             }
             pairs.push(pair)
             freeLanes.splice(0, 1)
-            available.splice(0, pairee2 !== undefined ? 2 : 1)
+
+            available.splice(index1, 1)
+            if (index2 !== undefined) {
+                available.splice(index2 > 0 ? index2-1 : index2, 1)
+            }
         }
         setCurrentPairs([...pairs])
         setPairingState(PairingState.GENERATED)
