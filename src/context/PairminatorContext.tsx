@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { Assignment, Lane, Pair, Pairee } from "../models/interface";
+import { Assignment, Lane, Pair, Pairee, Project } from "../models/interface";
 import { cloneDeep } from 'lodash'
 import { PairingState } from "../models/enum";
+import { useDatabaseContext } from "./DatabaseContext";
 
 const getNextId = (ids: number[]): number => {
     return ids.length > 0
@@ -10,6 +11,9 @@ const getNextId = (ids: number[]): number => {
 }
 
 export interface PairminatorContextT {
+    projectId: string | undefined;
+    projectName: string | undefined;
+    loadProject: (projectName: string) => Promise<void>;
     pairees: Pairee[];
     addPairee: (name: string) => void;
     updatePairee: (id: number, updatedName: string) => void;
@@ -40,6 +44,27 @@ interface Props {
 
 export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
+    /* BEGIN PROJECT */
+    const { handleSearchProjects, handleUpdateProject } = useDatabaseContext()
+    const [projectId, setProjectId] = useState<string | undefined>(undefined);
+    const [projectName, setProjectName] = useState<string | undefined>(undefined);
+
+    const loadProject = async (projectName: string): Promise<void> => {
+        const projects = await handleSearchProjects(projectName)
+        if (projects.length === 1) {
+            const project = projects[0]
+            setPairees(project.pairees)
+            setAvailablePairees(project.availablePairees)
+            setPairingState(project.pairingStatus)
+            setLanes(project.lanes)
+            setCurrentPairs(project.currentPairs)
+            setAssignmentHistory(project.history)
+            setProjectId(project.id)
+            setProjectName(project.name)
+        }
+    }
+    /* END PROJECT */
+
     /* BEGIN PAIREES */
     const [pairees, setPairees] = useState<Pairee[]>([]);
     const [availablePairees, setAvailablePairees] = useState<Pairee[]>(pairees);
@@ -52,14 +77,20 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         setPairees([...pairees, newPairee]);
         setAvailablePairees([...availablePairees, newPairee])
     }
-    
+
     const updatePairee = (id: number, updatedName: string) => {
         const pairee = pairees.find(p => p.id === id);
         if (pairee !== undefined) {
             const paireesCopy: Pairee[] = cloneDeep(pairees);
             const index = paireesCopy.findIndex(p => p.id === pairee.id);
             paireesCopy[index].name = updatedName
+
+            const availablePaireesCopy = cloneDeep(availablePairees)
+            const index2 = availablePaireesCopy.findIndex(p => p.id === pairee.id)
+            availablePaireesCopy[index2].name = updatedName
+
             setPairees([...paireesCopy])
+            setAvailablePairees([...availablePaireesCopy])
         }
     }
 
@@ -67,10 +98,10 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         const availableCopy: Pairee[] = cloneDeep(availablePairees)
         const currentlyAvailable: boolean = availableCopy.some(p => p.id === pairee.id)
         if (currentlyAvailable) {
-        const index: number = availableCopy.findIndex(p => p.id === pairee.id)
-        availableCopy.splice(index, 1)
+            const index: number = availableCopy.findIndex(p => p.id === pairee.id)
+            availableCopy.splice(index, 1)
         } else {
-        availableCopy.push(pairee)
+            availableCopy.push(pairee)
         }
         setAvailablePairees([...availableCopy])
     }
@@ -83,7 +114,6 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     
     useEffect(() => {
         const lanesNeeded: number = Math.ceil(availablePairees.length / 2)
-        
         let lanes: Lane[] = []
         for (let i=0; i < lanesNeeded; i++) {
             const lane: Lane = {
@@ -188,8 +218,28 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         }
     }
     /* END PAIRS */
+
+    useEffect(() => {
+        if (projectId && projectName) {
+            const projectUpdates: Project = {
+                id: projectId,
+                name: projectName,
+                pairees,
+                availablePairees,
+                pairingStatus: pairingState,
+                lanes,
+                currentPairs,
+                history: assignmentHistory,
+            }
+            handleUpdateProject(projectUpdates)
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pairingState, pairees, availablePairees, currentPairs, lanes, assignmentHistory])
     
     const contextValue: PairminatorContextT = {
+        projectId,
+        projectName,
+        loadProject,
         pairees,
         addPairee,
         updatePairee,

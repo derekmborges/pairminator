@@ -1,3 +1,4 @@
+import { PairingState } from "./enum";
 
 export interface Pairee {
     id: number;
@@ -18,4 +19,15 @@ export interface Pair {
 export interface Assignment {
     pairs: Pair[];
     date: Date;
+}
+
+export interface Project {
+    id: string;
+    name: string;
+    pairees: Pairee[];
+    availablePairees: Pairee[];
+    lanes: Lane[];
+    history: Assignment[];
+    currentPairs: Pair[] | null;
+    pairingStatus: PairingState
 }
