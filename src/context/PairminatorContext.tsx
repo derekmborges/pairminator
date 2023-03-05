@@ -13,6 +13,7 @@ const getNextId = (ids: number[]): number => {
 export interface PairminatorContextT {
     activeProject: Project | null;
     logIntoProject: (inputProjectName: string, inputPassword: string) => Promise<boolean>;
+    logOutOfProject: () => void;
     isProjectNameAvailable: (name: string) => Promise<boolean>;
     addProject: (projectName: string, password: string) => Promise<Project>;
     loadProject: (project: Project | null) => void;
@@ -84,6 +85,10 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             }
         }
         return false
+    }
+
+    const logOutOfProject = () => {
+        setActiveProject(null)
     }
     /* END PROJECT */
 
@@ -266,6 +271,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const contextValue: PairminatorContextT = {
         activeProject,
         logIntoProject,
+        logOutOfProject,
         isProjectNameAvailable,
         addProject,
         loadProject: setActiveProject,

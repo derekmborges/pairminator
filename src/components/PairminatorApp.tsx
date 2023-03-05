@@ -4,14 +4,16 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import { Theme } from "@mui/material";
+import Button from "@mui/material/Button";
 import Container from "@mui/system/Container";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { BrowserRouter } from "react-router-dom";
 import { AppRouter } from "./AppRouter";
 import { usePairminatorContext } from "../context/PairminatorContext";
+import Stack from "@mui/system/Stack";
 
 export const PairminatorApp = (): JSX.Element => {
-  const { activeProject } = usePairminatorContext()
+  const { activeProject, logOutOfProject } = usePairminatorContext()
 
   return (
     <BrowserRouter>
@@ -33,9 +35,18 @@ export const PairminatorApp = (): JSX.Element => {
               Pairminator
             </Typography>
             {activeProject && (
-              <Typography>
-                {activeProject.name}
-              </Typography>
+              <Stack direction='row' spacing={2} alignItems='center'>
+                <Typography>
+                  {activeProject.name}
+                </Typography>
+                <Button
+                  variant="text"
+                  color="inherit"
+                  onClick={logOutOfProject}
+                >
+                  Sign Out
+                </Button>
+              </Stack>
             )}
           </Toolbar>
         </AppBar>
