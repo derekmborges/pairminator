@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, where } from "@firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, setDoc, where } from "@firebase/firestore";
 import { createContext, useContext } from "react";
 import { database } from "../firebase";
 import { projectConverter } from "../lib/converter";

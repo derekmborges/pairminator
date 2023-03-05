@@ -1,5 +1,6 @@
 import { DocumentSnapshot, SnapshotOptions } from "firebase/firestore";
 import { Project } from "../models/interface";
+import { Assignment } from '../models/interface'
 
 export const projectConverter = {
     toFirestore: (project: Project) => {
@@ -25,7 +26,10 @@ export const projectConverter = {
                 pairees: data.pairees,
                 availablePairees: data.availablePairees,
                 lanes: data.lanes,
-                history: data.history,
+                history: data.history.map((h: any) => ({
+                    ...h,
+                    date: h.date.toDate()
+                } as Assignment)),
                 currentPairs: data.currentPairs,
                 pairingStatus: data.pairingStatus
             } as Project
