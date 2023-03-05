@@ -11,9 +11,11 @@ const getNextId = (ids: number[]): number => {
 }
 
 export interface PairminatorContextT {
-    projectId: string | undefined;
-    projectName: string | undefined;
-    loadProject: (projectName: string) => Promise<void>;
+    activeProject: Project | null;
+    logIntoProject: (inputProjectName: string, inputPassword: string) => Promise<boolean>;
+    isProjectNameAvailable: (name: string) => Promise<boolean>;
+    addProject: (projectName: string, password: string) => Promise<Project>;
+    loadProject: (project: Project | null) => void;
     pairees: Pairee[];
     addPairee: (name: string) => void;
     updatePairee: (id: number, updatedName: string) => void;
@@ -45,23 +47,43 @@ interface Props {
 export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     /* BEGIN PROJECT */
-    const { handleSearchProjects, handleUpdateProject } = useDatabaseContext()
-    const [projectId, setProjectId] = useState<string | undefined>(undefined);
-    const [projectName, setProjectName] = useState<string | undefined>(undefined);
+    const { handleAddProject, handleSearchProjects, handleGetProject, handleUpdateProject } = useDatabaseContext()
+    // const [projectId, setProjectId] = useState<string | undefined>(undefined);
+    // const [projectName, setProjectName] = useState<string | undefined>(undefined);
+    const [activeProject, setActiveProject] = useState<Project | null>(null)
 
-    const loadProject = async (projectName: string): Promise<void> => {
-        const projects = await handleSearchProjects(projectName)
+    const isProjectNameAvailable = async (name: string): Promise<boolean> => {
+        const projects = await handleSearchProjects(name)
+        return projects.length === 0
+    }
+
+    const addProject = async (projectName: string, password: string): Promise<Project> => {
+        const project = await handleAddProject(projectName, password)
+        setActiveProject(project)
+        return project
+    }
+
+    const logIntoProject = async (inputProjectName: string, inputPassword: string): Promise<boolean> => {
+        console.log('searching for project/password:', inputProjectName, inputPassword)
+        const projects = await handleSearchProjects(inputProjectName)
+        console.log(projects)
         if (projects.length === 1) {
             const project = projects[0]
-            setPairees(project.pairees)
-            setAvailablePairees(project.availablePairees)
-            setPairingState(project.pairingStatus)
-            setLanes(project.lanes)
-            setCurrentPairs(project.currentPairs)
-            setAssignmentHistory(project.history)
-            setProjectId(project.id)
-            setProjectName(project.name)
+            console.log('checking password')
+            if (project.password === inputPassword) {
+                setActiveProject(project)
+                setPairees(project.pairees)
+                setAvailablePairees(project.availablePairees)
+                setPairingState(project.pairingStatus)
+                setLanes(project.lanes)
+                setCurrentPairs(project.currentPairs)
+                setAssignmentHistory(project.history)
+                // setProjectId(project.id)
+                // setProjectName(project.name)
+                return true
+            }
         }
+        return false
     }
     /* END PROJECT */
 
@@ -220,26 +242,33 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     /* END PAIRS */
 
     useEffect(() => {
-        if (projectId && projectName) {
-            const projectUpdates: Project = {
-                id: projectId,
-                name: projectName,
-                pairees,
-                availablePairees,
-                pairingStatus: pairingState,
-                lanes,
-                currentPairs,
-                history: assignmentHistory,
+        async function saveProject() {
+            if (activeProject) {
+                const project = await handleGetProject(activeProject.id)
+                if (project) {
+                    const projectUpdates: Project = {
+                        ...project,
+                        pairees,
+                        availablePairees,
+                        pairingStatus: pairingState,
+                        lanes,
+                        currentPairs,
+                        history: assignmentHistory,
+                    }
+                    handleUpdateProject(projectUpdates)
+                }
             }
-            handleUpdateProject(projectUpdates)
         }
+        saveProject()
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pairingState, pairees, availablePairees, currentPairs, lanes, assignmentHistory])
     
     const contextValue: PairminatorContextT = {
-        projectId,
-        projectName,
-        loadProject,
+        activeProject,
+        logIntoProject,
+        isProjectNameAvailable,
+        addProject,
+        loadProject: setActiveProject,
         pairees,
         addPairee,
         updatePairee,

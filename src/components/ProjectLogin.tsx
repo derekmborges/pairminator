@@ -6,21 +6,27 @@ import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
 import Button from '@mui/material/Button'
 import { usePairminatorContext } from '../context/PairminatorContext'
 import { useNavigate } from 'react-router'
+import Divider from '@mui/material/Divider'
+import LoadingButton from '@mui/lab/LoadingButton'
 
 export const ProjectLogin = (): JSX.Element => {
-  const { loadProject, projectId } = usePairminatorContext()
+  const { logIntoProject } = usePairminatorContext()
   const [projectName, setProjectName] = useState<string>('')
+  const [projectPassword, setProjectPassword] = useState<string>('')
+  const [loggingIn, setLoggingIn] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    if (projectId !== undefined) {
+  const login = async() => {
+    setLoggingIn(true)
+    setError(null)
+    const success = await logIntoProject(projectName, projectPassword)
+    if (success) {
       navigate({ pathname: '/dashboard' })
+    } else {
+      setError('Invalid project name and password')
     }
-  }, [projectId, navigate])
-  
-
-  const login = () => {
-    loadProject(projectName)
+    setLoggingIn(false)
   }
 
   return (
@@ -29,20 +35,20 @@ export const ProjectLogin = (): JSX.Element => {
         width="100%"
         height="100%"
         direction='column'
-        justifyContent='center'
         alignItems='center'
-        p={2}
+        p={1}
         spacing={2}
       >
         <Typography variant='h6'>
-          Enter Project Name
+          Log into existing project
         </Typography>
         <TextField
           fullWidth
           id="project-name"
-          placeholder='Name'
+          placeholder='Project Name'
           variant='outlined'
           sx={{ width: 300 }}
+          value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
           onKeyUp={(e) => {
             if (e.key === 'Enter') {
@@ -50,14 +56,45 @@ export const ProjectLogin = (): JSX.Element => {
             }
           }}
         />
-        <Button
+        <TextField
           fullWidth
+          id="project-password"
+          type="password"
+          placeholder='Password'
+          variant='outlined'
+          sx={{ width: 300 }}
+          value={projectPassword}
+          onChange={(e) => setProjectPassword(e.target.value)}
+          onKeyUp={(e) => {
+            if (e.key === 'Enter') {
+              login()
+            }
+          }}
+        />
+        {!loggingIn && error && (
+          <Typography variant='body1' color='red'>
+            {error}
+          </Typography>
+        )}
+        <LoadingButton
+          loading={loggingIn}
           variant='contained'
           color='secondary'
           sx={{ width: 300 }}
           onClick={login}
+          disabled={!projectName.length || !projectPassword.length}
         >
           Login
+        </LoadingButton>
+        <Divider sx={{ my: 4 }} />
+        <Button
+          fullWidth
+          variant='outlined'
+          color='secondary'
+          sx={{ width: 300 }}
+          onClick={() => navigate({ pathname: '/new' })}
+        >
+          Create Project
         </Button>
       </Stack>
     </Grid2>

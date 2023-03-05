@@ -7,10 +7,10 @@ import { usePairminatorContext } from '../context/PairminatorContext'
 import { useNavigate } from 'react-router'
 
 export const Dashboard = (): JSX.Element => {
-    const { projectId } = usePairminatorContext()
+    const { activeProject } = usePairminatorContext()
     const navigate = useNavigate()
 
-    if (!projectId) {
+    if (!activeProject) {
         navigate({ pathname: '/' })
     }
 

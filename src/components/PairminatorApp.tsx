@@ -11,7 +11,7 @@ import { AppRouter } from "./AppRouter";
 import { usePairminatorContext } from "../context/PairminatorContext";
 
 export const PairminatorApp = (): JSX.Element => {
-  const { projectName } = usePairminatorContext()
+  const { activeProject } = usePairminatorContext()
 
   return (
     <BrowserRouter>
@@ -32,9 +32,9 @@ export const PairminatorApp = (): JSX.Element => {
             >
               Pairminator
             </Typography>
-            {projectName && (
+            {activeProject && (
               <Typography>
-                {projectName}
+                {activeProject.name}
               </Typography>
             )}
           </Toolbar>

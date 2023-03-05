@@ -1,11 +1,13 @@
-import { collection, doc, getDoc, getDocs, query, setDoc, where } from "@firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, where } from "@firebase/firestore";
 import { createContext, useContext } from "react";
 import { database } from "../firebase";
 import { projectConverter } from "../lib/converter";
+import { PairingState } from "../models/enum";
 import { Project } from "../models/interface";
 
 
 interface DatabaseContextT {
+    handleAddProject: (name: string, password: string) => Promise<Project>;
     handleSearchProjects: (nameSearch: string) => Promise<Project[]>;
     handleGetProject: (projectId: string) => Promise<Project | undefined>;
     handleUpdateProject: (project: Project) => void;
@@ -29,13 +31,30 @@ export const COLLECTION_PROJECTS = 'projects'
 
 export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
 
+    const handleAddProject = async (name: string, password: string): Promise<Project> => {
+        const docRef = await addDoc(collection(database, COLLECTION_PROJECTS), {})
+        const newProject: Project = {
+            id: docRef.id,
+            name,
+            password,
+            pairees: [],
+            availablePairees: [],
+            lanes: [],
+            currentPairs: null,
+            history: [],
+            pairingStatus: PairingState.INITIAL,
+        }
+        await setDoc(docRef, newProject)
+        return newProject
+    }
+
     const handleGetProject = async (projectId: string): Promise<Project | undefined> => {
         const projectDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId).withConverter(projectConverter))
         return projectDoc.data()
     }
 
     const handleSearchProjects = async (nameSearch: string): Promise<Project[]> => {
-        const projectQuery = query(collection(database, COLLECTION_PROJECTS), where('projectName', '==', nameSearch)).withConverter(projectConverter)
+        const projectQuery = query(collection(database, COLLECTION_PROJECTS), where('name', '==', nameSearch)).withConverter(projectConverter)
         const snapshot = await getDocs(projectQuery)
         let projects: Project[] = []
         snapshot.forEach((result) => {
@@ -53,6 +72,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
     }
 
     const contextValue: DatabaseContextT = {
+        handleAddProject,
         handleSearchProjects,
         handleGetProject,
         handleUpdateProject,

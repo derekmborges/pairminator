@@ -24,6 +24,7 @@ export interface Assignment {
 export interface Project {
     id: string;
     name: string;
+    password: string;
     pairees: Pairee[];
     availablePairees: Pairee[];
     lanes: Lane[];
