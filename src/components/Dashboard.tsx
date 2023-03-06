@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
 import { History } from './History'
 import { Pairees } from './Pairees'
@@ -7,12 +7,14 @@ import { usePairminatorContext } from '../context/PairminatorContext'
 import { useNavigate } from 'react-router'
 
 export const Dashboard = (): JSX.Element => {
-    const { activeProject } = usePairminatorContext()
+    const { initializing, activeProject } = usePairminatorContext()
     const navigate = useNavigate()
 
-    if (!activeProject) {
-        navigate({ pathname: '/' })
-    }
+    useEffect(() => {
+        if (!initializing && !activeProject) {
+            navigate({ pathname: '/' })
+        }
+    }, [initializing, activeProject, navigate])
 
     return (
         <>

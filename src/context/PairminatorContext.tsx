@@ -11,6 +11,7 @@ const getNextId = (ids: number[]): number => {
 }
 
 export interface PairminatorContextT {
+    initializing: boolean;
     activeProject: Project | null;
     logIntoProject: (inputProjectName: string, inputPassword: string) => Promise<boolean>;
     logOutOfProject: () => void;
@@ -46,11 +47,10 @@ interface Props {
 }
 
 export const PairminatorProvider: React.FC<Props> = ({ children }) => {
+    const [initializing, setInitializing] = useState<boolean>(true)
 
     /* BEGIN PROJECT */
     const { handleAddProject, handleSearchProjects, handleGetProject, handleUpdateProject } = useDatabaseContext()
-    // const [projectId, setProjectId] = useState<string | undefined>(undefined);
-    // const [projectName, setProjectName] = useState<string | undefined>(undefined);
     const [activeProject, setActiveProject] = useState<Project | null>(null)
 
     const isProjectNameAvailable = async (name: string): Promise<boolean> => {
@@ -60,27 +60,27 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     const addProject = async (projectName: string, password: string): Promise<Project> => {
         const project = await handleAddProject(projectName, password)
-        setActiveProject(project)
+        loadProject(project)
         return project
     }
 
+    const loadProject = (project: Project) => {
+        setActiveProject(project)
+        setPairees(project.pairees)
+        setAvailablePairees(project.availablePairees)
+        setPairingState(project.pairingStatus)
+        setLanes(project.lanes)
+        setCurrentPairs(project.currentPairs)
+        setAssignmentHistory(project.history)
+        window.localStorage.setItem('pairminatorActiveProjectId', project.id)
+    }
+
     const logIntoProject = async (inputProjectName: string, inputPassword: string): Promise<boolean> => {
-        console.log('searching for project/password:', inputProjectName, inputPassword)
         const projects = await handleSearchProjects(inputProjectName)
-        console.log(projects)
         if (projects.length === 1) {
             const project = projects[0]
-            console.log('checking password')
             if (project.password === inputPassword) {
-                setActiveProject(project)
-                setPairees(project.pairees)
-                setAvailablePairees(project.availablePairees)
-                setPairingState(project.pairingStatus)
-                setLanes(project.lanes)
-                setCurrentPairs(project.currentPairs)
-                setAssignmentHistory(project.history)
-                // setProjectId(project.id)
-                // setProjectName(project.name)
+                loadProject(project)
                 return true
             }
         }
@@ -89,6 +89,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     const logOutOfProject = () => {
         setActiveProject(null)
+        window.localStorage.removeItem('pairminatorActiveProjectId')
     }
     /* END PROJECT */
 
@@ -247,6 +248,20 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     /* END PAIRS */
 
     useEffect(() => {
+        async function loadFromStorage() {
+            const storedProjectId = window.localStorage.getItem('pairminatorActiveProjectId')
+            if (storedProjectId) {
+                const project = await handleGetProject(storedProjectId)
+                if (project) {
+                    loadProject(project)
+                }
+            }
+            setInitializing(false)
+        }
+        loadFromStorage()
+    }, [handleGetProject])
+
+    useEffect(() => {
         async function saveProject() {
             if (activeProject) {
                 const project = await handleGetProject(activeProject.id)
@@ -269,6 +284,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     }, [pairingState, pairees, availablePairees, currentPairs, lanes, assignmentHistory])
     
     const contextValue: PairminatorContextT = {
+        initializing,
         activeProject,
         logIntoProject,
         logOutOfProject,
