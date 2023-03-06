@@ -46,6 +46,8 @@ interface Props {
     children: React.ReactNode;
 }
 
+export const LOCAL_STORAGE_PROJECT_KEY = 'pairminatorActiveProjectId'
+
 export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const [initializing, setInitializing] = useState<boolean>(true)
 
@@ -72,7 +74,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         setLanes(project.lanes)
         setCurrentPairs(project.currentPairs)
         setAssignmentHistory(project.history)
-        window.localStorage.setItem('pairminatorActiveProjectId', project.id)
+        window.localStorage.setItem(LOCAL_STORAGE_PROJECT_KEY, project.id)
     }
 
     const logIntoProject = async (inputProjectName: string, inputPassword: string): Promise<boolean> => {
@@ -89,7 +91,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     const logOutOfProject = () => {
         setActiveProject(null)
-        window.localStorage.removeItem('pairminatorActiveProjectId')
+        window.localStorage.removeItem(LOCAL_STORAGE_PROJECT_KEY)
     }
     /* END PROJECT */
 
@@ -249,7 +251,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     useEffect(() => {
         async function loadFromStorage() {
-            const storedProjectId = window.localStorage.getItem('pairminatorActiveProjectId')
+            const storedProjectId = window.localStorage.getItem(LOCAL_STORAGE_PROJECT_KEY)
             if (storedProjectId) {
                 const project = await handleGetProject(storedProjectId)
                 if (project) {

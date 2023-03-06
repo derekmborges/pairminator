@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
 import Button from '@mui/material/Button'
-import { usePairminatorContext } from '../context/PairminatorContext'
+import { LOCAL_STORAGE_PROJECT_KEY, usePairminatorContext } from '../context/PairminatorContext'
 import { useNavigate } from 'react-router'
 import Divider from '@mui/material/Divider'
 import LoadingButton from '@mui/lab/LoadingButton'
@@ -16,6 +16,12 @@ export const ProjectLogin = (): JSX.Element => {
   const [loggingIn, setLoggingIn] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+
+  useEffect(()=> {
+    if (window.localStorage.getItem(LOCAL_STORAGE_PROJECT_KEY)) {
+      window.localStorage.removeItem(LOCAL_STORAGE_PROJECT_KEY)
+    }
+  }, [])
 
   const login = async() => {
     setLoggingIn(true)
