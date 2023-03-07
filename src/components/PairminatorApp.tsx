@@ -7,7 +7,7 @@ import { Theme } from "@mui/material";
 import Button from "@mui/material/Button";
 import Container from "@mui/system/Container";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
-import { BrowserRouter } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 import { AppRouter } from "./AppRouter";
 import { usePairminatorContext } from "../context/PairminatorContext";
 import Stack from "@mui/system/Stack";
@@ -16,7 +16,7 @@ export const PairminatorApp = (): JSX.Element => {
   const { activeProject, logOutOfProject } = usePairminatorContext()
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Box display='flex'>
         <AppBar
           position="absolute"
@@ -70,6 +70,6 @@ export const PairminatorApp = (): JSX.Element => {
           </Container>
         </Box>
       </Box>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
