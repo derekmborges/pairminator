@@ -69,7 +69,7 @@ export const Pairees = (): JSX.Element => {
         <Paper sx={{ mt: 3, p: 2, display: 'flex', flexDirection: 'column' }}>
             <Grid2 container>
                 <Grid2 xs={12} md={8}>
-                    <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                    <Typography component="h2" variant="h6" color="secondary" gutterBottom>
                         Pairees
                     </Typography>
                     {pairees.length > 0 ? (
@@ -85,7 +85,7 @@ export const Pairees = (): JSX.Element => {
                     )}
                 </Grid2>
                 <Grid2 xs={12} md={4}>
-                    <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                    <Typography component="h2" variant="h6" color="secondary" gutterBottom>
                         Add Pairee
                     </Typography>
                     <Box>

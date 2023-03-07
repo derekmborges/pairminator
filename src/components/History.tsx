@@ -15,7 +15,7 @@ export const History = (): JSX.Element => {
       height={{ md: '100%', xs: 'auto' }}
       sx={{ p: 2, display: 'flex', flexDirection: 'column' }}
     >
-      <Typography component="h2" variant="h6" color="primary" gutterBottom>
+      <Typography component="h2" variant="h6" color="secondary" gutterBottom>
         Pairing History
       </Typography>
 

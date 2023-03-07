@@ -25,7 +25,7 @@ export const Pairs = (): JSX.Element => {
 
   return (
     <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-      <Typography component="h2" variant="h6" color="primary" gutterBottom>
+      <Typography component="h2" variant="h6" color="secondary" gutterBottom>
         Current Pairs
       </Typography>
 
@@ -46,7 +46,7 @@ export const Pairs = (): JSX.Element => {
                     size='medium'
                     label={pairee.name}
                     variant={availablePairees.some(p => p.id === pairee.id) ? 'filled' : 'outlined'}
-                    color={availablePairees.some(p => p.id === pairee.id) ? 'info' : 'default'}
+                    color={availablePairees.some(p => p.id === pairee.id) ? 'primary' : 'default'}
                     onClick={() => togglePaireeAvailability(pairee)}
                   />
                 </Grid2>
