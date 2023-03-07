@@ -11,16 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: |
-             echo "Deploying to Github Pages"
-             git config --global user.email "dborges2143@gmail.com"
-             git config --global user.name "Derek Borges"
-             yarn
-             yarn deploy
+      - name: Deploy
         env:
+          MY_EMAIL: dborges2143@gmail.com
+          MY_NAME: derekmborges
           REACT_APP_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           REACT_APP_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
           REACT_APP_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           REACT_APP_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
           REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           REACT_APP_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+        run: |
+             echo "Deploying to Github Pages"
+             git config --global user.email $MY_EMAIL
+             git config --global user.name $MY_NAME
+             git remote set-url origin https://$MY_NAME:${{ secrets.ACTIONS_BOT_TOKEN }}@github.com:derekmborges/pairminator.git
+             yarn
+             yarn deploy
