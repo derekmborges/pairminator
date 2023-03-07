@@ -18,9 +18,9 @@ export const Pairs = (): JSX.Element => {
     togglePaireeAvailability,
     pairingState,
     currentPairs,
-    generatePairs,
+    assignPairs,
     resetCurrentPairs,
-    assignCurrentPairs
+    recordCurrentPairs
   } = usePairminatorContext()
 
   return (
@@ -32,7 +32,7 @@ export const Pairs = (): JSX.Element => {
       {pairingState === PairingState.INITIAL && (
         <>
           <Typography variant='body1'>
-            No pairs have been generated yet.
+            No pairs have been assigned yet.
           </Typography>
           <Divider sx={{ my: 3 }} />
           <Typography component="h2" variant="h6">
@@ -59,10 +59,10 @@ export const Pairs = (): JSX.Element => {
           )}
         </>
       )}
-      {pairingState === PairingState.GENERATING && (
+      {pairingState === PairingState.ASSIGNING && (
         <LinearProgress color='inherit' sx={{ mt: 2 }} />
       )}
-      {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && currentPairs && (
+      {[PairingState.ASSIGNED, PairingState.RECORDED].includes(pairingState) && currentPairs && (
         <Grid2 container px={0} spacing={2}>
           {currentPairs.map((pair: Pair) => (
             <Grid2 key={pair.lane.id}>
@@ -74,14 +74,14 @@ export const Pairs = (): JSX.Element => {
                   size='medium'
                   label={pair.pairee1.name}
                   variant='filled'
-                  color={pairingState === PairingState.ASSIGNED ? 'success' : 'primary'}
+                  color={pairingState === PairingState.RECORDED ? 'success' : 'primary'}
                 />
                 {pair.pairee2 && (
                   <Chip
                     size='medium'
                     label={pair.pairee2.name}
                     variant='filled'
-                    color={pairingState === PairingState.ASSIGNED ? 'success' : 'primary'}
+                    color={pairingState === PairingState.RECORDED ? 'success' : 'primary'}
                   />
                 )}
               </Stack>
@@ -91,38 +91,38 @@ export const Pairs = (): JSX.Element => {
       )}
 
       <Stack direction="row" pt={3} pb={2} spacing={2}>
-        {[PairingState.INITIAL, PairingState.GENERATING].includes(pairingState) && (
+        {[PairingState.INITIAL, PairingState.ASSIGNING].includes(pairingState) && (
           <Stack direction='row' alignItems='center' spacing={2}>
             <Button
               color="primary"
               variant='contained'
               size='large'
-              disabled={availablePairees.length < 2 || pairingState === PairingState.GENERATING}
-              onClick={generatePairs}
+              disabled={availablePairees.length < 2 || pairingState === PairingState.ASSIGNING}
+              onClick={assignPairs}
             >
-              Generate
+              Assign
             </Button>
             {availablePairees.length < 2 && (
               <Typography
                 variant='caption'
                 color='warning.dark'
               >
-                2 or more pairees must be available to generate pairs.
+                2 or more pairees must be available to assign pairs.
               </Typography>
             )}
           </Stack>
         )}
-        {pairingState === PairingState.GENERATED && (
+        {pairingState === PairingState.ASSIGNED && (
           <Button
-            color="success"
+            color="secondary"
             variant='contained'
             size='large'
-            onClick={assignCurrentPairs}
+            onClick={recordCurrentPairs}
           >
-            Assign
+            Record
           </Button>
         )}
-        {[PairingState.GENERATED, PairingState.ASSIGNED].includes(pairingState) && (
+        {[PairingState.ASSIGNED, PairingState.RECORDED].includes(pairingState) && (
           <Button
             color="inherit"
             variant='contained'
@@ -133,7 +133,6 @@ export const Pairs = (): JSX.Element => {
           </Button>
         )}
       </Stack>
-
     </Paper>
   )
 }

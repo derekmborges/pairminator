@@ -4,10 +4,10 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { usePairminatorContext } from '../context/PairminatorContext'
-import { Assignment, Pair } from '../models/interface'
+import { RecordedPairs, Pair } from '../models/interface'
 
 export const History = (): JSX.Element => {
-  const { assignmentHistory } = usePairminatorContext()
+  const { recordedPairsHistory } = usePairminatorContext()
 
   return (
     <Paper
@@ -16,24 +16,24 @@ export const History = (): JSX.Element => {
       sx={{ p: 2, display: 'flex', flexDirection: 'column' }}
     >
       <Typography component="h2" variant="h6" color="secondary" gutterBottom>
-        Pairing History
+        Pair History
       </Typography>
 
-      {!assignmentHistory.length && (
+      {!recordedPairsHistory.length && (
         <Typography variant='body1' fontStyle='italic'>
-          Assign pairs to see a recent history.
+          Record pairs to see a recent history.
         </Typography>
       )}
 
       <Stack spacing={2}>
-        {assignmentHistory
+        {recordedPairsHistory
           .sort((a, b) => b.date.valueOf() - a.date.valueOf())
-          .map((assignment: Assignment) => (
-            <Box key={assignment.date.valueOf()}>
+          .map((recordedPairs: RecordedPairs) => (
+            <Box key={recordedPairs.date.valueOf()}>
               <Typography variant='h6'>
-                {assignment.date.toLocaleString()}
+                {recordedPairs.date.toLocaleString()}
               </Typography>
-              {assignment.pairs.map((pair: Pair) => (
+              {recordedPairs.pairs.map((pair: Pair) => (
                 <Stack direction='row' key={pair.lane.id}>
                   <Typography variant='body1'>
                     {pair.pairee1.name}

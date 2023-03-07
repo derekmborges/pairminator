@@ -17,7 +17,7 @@ export const PairminatorApp = (): JSX.Element => {
 
   return (
     <BrowserRouter>
-      <Box sx={{ display: "flex" }}>
+      <Box display='flex'>
         <AppBar
           position="absolute"
           sx={{

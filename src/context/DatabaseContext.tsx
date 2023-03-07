@@ -41,7 +41,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
             availablePairees: [],
             lanes: [],
             currentPairs: null,
-            history: [],
+            recordedPairsHistory: [],
             pairingStatus: PairingState.INITIAL,
         }
         await setDoc(docRef, newProject)

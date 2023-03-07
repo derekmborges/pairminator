@@ -16,6 +16,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import PersonIcon from '@mui/icons-material/Person'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { EditPaireeDialog } from './EditPaireeDialog'
+import { Theme } from '@mui/material'
 
 export const Pairees = (): JSX.Element => {
     const { pairees, addPairee } = usePairminatorContext();
@@ -48,7 +49,8 @@ export const Pairees = (): JSX.Element => {
                         : null
                     }
                     sx={{
-                        bgcolor: hovering ? 'grey.100' : 'transparent'
+                        bgcolor: (theme: Theme) => hovering ? theme.palette.primary.light : 'transparent',
+                        borderRadius: '0.5rem'
                     }}
                 >
                     <ListItemIcon>

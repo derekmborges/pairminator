@@ -16,7 +16,7 @@ export interface Pair {
     lane: Lane;
 }
 
-export interface Assignment {
+export interface RecordedPairs {
     pairs: Pair[];
     date: Date;
 }
@@ -28,7 +28,7 @@ export interface Project {
     pairees: Pairee[];
     availablePairees: Pairee[];
     lanes: Lane[];
-    history: Assignment[];
+    recordedPairsHistory: RecordedPairs[];
     currentPairs: Pair[] | null;
     pairingStatus: PairingState
 }

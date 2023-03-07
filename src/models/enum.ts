@@ -1,6 +1,6 @@
 export enum PairingState {
     INITIAL,
-    GENERATING,
-    GENERATED,
-    ASSIGNED
+    ASSIGNING,
+    ASSIGNED,
+    RECORDED
 }

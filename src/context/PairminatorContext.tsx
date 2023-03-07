@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { Assignment, Lane, Pair, Pairee, Project } from "../models/interface";
+import { RecordedPairs, Lane, Pair, Pairee, Project } from "../models/interface";
 import { cloneDeep } from 'lodash'
 import { PairingState } from "../models/enum";
 import { useDatabaseContext } from "./DatabaseContext";
@@ -17,7 +17,6 @@ export interface PairminatorContextT {
     logOutOfProject: () => void;
     isProjectNameAvailable: (name: string) => Promise<boolean>;
     addProject: (projectName: string, password: string) => Promise<Project>;
-    loadProject: (project: Project | null) => void;
     pairees: Pairee[];
     addPairee: (name: string) => void;
     updatePairee: (id: number, updatedName: string) => void;
@@ -26,10 +25,10 @@ export interface PairminatorContextT {
     pairingState: PairingState;
     currentPairs: Pair[] | null;
     lanes: Lane[];
-    generatePairs: () => void;
+    assignPairs: () => void;
     resetCurrentPairs: () => void;
-    assignCurrentPairs: () => void;
-    assignmentHistory: Assignment[];
+    recordCurrentPairs: () => void;
+    recordedPairsHistory: RecordedPairs[];
 }
 
 export const PairminatorContext = createContext<PairminatorContextT | undefined>(undefined);
@@ -73,7 +72,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         setPairingState(project.pairingStatus)
         setLanes(project.lanes)
         setCurrentPairs(project.currentPairs)
-        setAssignmentHistory(project.history)
+        setRecordedPairsHistory(project.recordedPairsHistory)
         window.localStorage.setItem(LOCAL_STORAGE_PROJECT_KEY, project.id)
     }
 
@@ -158,7 +157,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const getHistoricalPairMap = (): Map<number, number[]> => {
         const pairMap: Map<number, number[]> = new Map<number, number[]>()
 
-        for (let assignment of assignmentHistory) {
+        for (let assignment of recordedPairsHistory) {
             for (let pair of assignment.pairs) {
                 if (pair.pairee2) {
                     // add pairee2 to pairee1 ids
@@ -183,8 +182,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         return pairMap
     }
 
-    const generatePairs = () => {
-        setPairingState(PairingState.GENERATING)
+    const assignPairs = () => {
+        setPairingState(PairingState.ASSIGNING)
         let pairs: Pair[] = []
         let available: Pairee[] = cloneDeep(availablePairees)
         let freeLanes: Lane[] = cloneDeep(lanes)
@@ -228,7 +227,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         }
 
         setCurrentPairs([...pairs])
-        setPairingState(PairingState.GENERATED)
+        setPairingState(PairingState.ASSIGNED)
     }
 
     const resetCurrentPairs = () => {
@@ -236,15 +235,15 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         setCurrentPairs(null)
     }
 
-    const [assignmentHistory, setAssignmentHistory] = useState<Assignment[]>([])
-    const assignCurrentPairs = () => {
+    const [recordedPairsHistory, setRecordedPairsHistory] = useState<RecordedPairs[]>([])
+    const recordCurrentPairs = () => {
         if (currentPairs) {
-            const newAssignment: Assignment = {
+            const recordedPairs: RecordedPairs = {
                 pairs: currentPairs,
                 date: new Date()
             }
-            setAssignmentHistory([...assignmentHistory, newAssignment])
-            setPairingState(PairingState.ASSIGNED)
+            setRecordedPairsHistory([...recordedPairsHistory, recordedPairs])
+            setPairingState(PairingState.RECORDED)
         }
     }
     /* END PAIRS */
@@ -275,7 +274,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                         pairingStatus: pairingState,
                         lanes,
                         currentPairs,
-                        history: assignmentHistory,
+                        recordedPairsHistory,
                     }
                     handleUpdateProject(projectUpdates)
                 }
@@ -283,7 +282,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         }
         saveProject()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pairingState, pairees, availablePairees, currentPairs, lanes, assignmentHistory])
+    }, [pairingState, pairees, availablePairees, currentPairs, lanes, recordedPairsHistory])
     
     const contextValue: PairminatorContextT = {
         initializing,
@@ -292,7 +291,6 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         logOutOfProject,
         isProjectNameAvailable,
         addProject,
-        loadProject: setActiveProject,
         pairees,
         addPairee,
         updatePairee,
@@ -301,10 +299,10 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         pairingState,
         currentPairs,
         lanes,
-        generatePairs,
+        assignPairs,
         resetCurrentPairs,
-        assignCurrentPairs,
-        assignmentHistory,
+        recordCurrentPairs,
+        recordedPairsHistory,
     };
 
     return (
