@@ -15,6 +15,7 @@ jobs:
              echo "Deploying to Github Pages"
              git config --global user.email "you@example.com"
              git config --global user.name "Your Name"
+             yarn
              yarn deploy
         env:
           REACT_APP_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
