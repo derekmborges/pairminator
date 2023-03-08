@@ -25,6 +25,6 @@ jobs:
              echo "Deploying to Github Pages"
              git config --global user.email $MY_EMAIL
              git config --global user.name $MY_NAME
-             git remote set-url origin https://$MY_NAME:${{ secrets.ACTIONS_BOT_TOKEN }}@github.com:derekmborges/pairminator.git
+             git remote set-url origin https://$MY_NAME:${{ secrets.ACTIONS_BOT_TOKEN }}@github.com/derekmborges/pairminator.git
              yarn
              yarn deploy
