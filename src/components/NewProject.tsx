@@ -32,13 +32,22 @@ export const NewProject = (): JSX.Element => {
 
     return (
         <Grid2 xs={12}>
-            <IconButton size='large' onClick={() => navigate({ pathname: '/' })}>
+            <IconButton
+                size='large'
+                onClick={() => navigate({ pathname: '/' })}
+                sx={{
+                    position: 'absolute',
+                    top: '5rem',
+                    left: '1rem'
+                }}
+            >
                 <ArrowBackIcon fontSize='inherit' />
             </IconButton>
             <Stack
                 direction='column'
-                spacing={2}
                 alignItems='center'
+                p={1}
+                spacing={2}
             >
                 <img
                     src={pearImg}
