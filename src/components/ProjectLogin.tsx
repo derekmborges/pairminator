@@ -8,6 +8,7 @@ import { LOCAL_STORAGE_PROJECT_KEY, usePairminatorContext } from '../context/Pai
 import { useNavigate } from 'react-router'
 import Divider from '@mui/material/Divider'
 import LoadingButton from '@mui/lab/LoadingButton'
+import pearImg from '../images/pear.png'
 
 export const ProjectLogin = (): JSX.Element => {
   const { logIntoProject } = usePairminatorContext()
@@ -45,8 +46,13 @@ export const ProjectLogin = (): JSX.Element => {
         p={1}
         spacing={2}
       >
-        <Typography variant='h6'>
-          Log into existing project
+        <img
+          src={pearImg}
+          alt="pear"
+          width={200}
+        />
+        <Typography variant='h6' pt={3}>
+          Log in and pear up!
         </Typography>
         <TextField
           fullWidth

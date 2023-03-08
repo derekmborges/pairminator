@@ -8,6 +8,7 @@ import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import IconButton from '@mui/material/IconButton'
 import { usePairminatorContext } from '../context/PairminatorContext'
+import pearImg from '../images/pear.png'
 
 export const NewProject = (): JSX.Element => {
     const { isProjectNameAvailable, addProject } = usePairminatorContext()
@@ -39,7 +40,12 @@ export const NewProject = (): JSX.Element => {
                 spacing={2}
                 alignItems='center'
             >
-                <Typography variant='h6'>
+                <img
+                    src={pearImg}
+                    alt="pear gif"
+                    width={200}
+                />
+                <Typography variant='h6' pt={3}>
                     Create a project
                 </Typography>
                 <TextField
