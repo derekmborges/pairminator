@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/pairminator/static/css/main.ceea8c9a.css",
-    "main.js": "/pairminator/static/js/main.89c67520.js",
+    "main.js": "/pairminator/static/js/main.417d258a.js",
     "static/js/787.cda612ba.chunk.js": "/pairminator/static/js/787.cda612ba.chunk.js",
     "static/media/roboto-all-500-normal.woff": "/pairminator/static/media/roboto-all-500-normal.0ab669b7a0d19b178f57.woff",
     "static/media/roboto-all-700-normal.woff": "/pairminator/static/media/roboto-all-700-normal.a457fde362a540fcadff.woff",
@@ -19,6 +19,7 @@
     "static/media/roboto-latin-ext-700-normal.woff2": "/pairminator/static/media/roboto-latin-ext-700-normal.ed67ad54b1a8f5d21150.woff2",
     "static/media/roboto-latin-ext-500-normal.woff2": "/pairminator/static/media/roboto-latin-ext-500-normal.9165081d10e1ba601384.woff2",
     "static/media/roboto-latin-ext-300-normal.woff2": "/pairminator/static/media/roboto-latin-ext-300-normal.dc7dcec8e3f654e0ed63.woff2",
+    "static/media/pear.png": "/pairminator/static/media/pear.3876fcd51cf8356dcbda.png",
     "static/media/roboto-cyrillic-500-normal.woff2": "/pairminator/static/media/roboto-cyrillic-500-normal.cad7d3d9cb265e334e58.woff2",
     "static/media/roboto-cyrillic-700-normal.woff2": "/pairminator/static/media/roboto-cyrillic-700-normal.d010f1f324e111a22e53.woff2",
     "static/media/roboto-cyrillic-400-normal.woff2": "/pairminator/static/media/roboto-cyrillic-400-normal.71a33b6b50457b2c903a.woff2",
@@ -37,11 +38,11 @@
     "static/media/roboto-greek-ext-700-normal.woff2": "/pairminator/static/media/roboto-greek-ext-700-normal.bd9854c751441ccc1a70.woff2",
     "index.html": "/pairminator/index.html",
     "main.ceea8c9a.css.map": "/pairminator/static/css/main.ceea8c9a.css.map",
-    "main.89c67520.js.map": "/pairminator/static/js/main.89c67520.js.map",
+    "main.417d258a.js.map": "/pairminator/static/js/main.417d258a.js.map",
     "787.cda612ba.chunk.js.map": "/pairminator/static/js/787.cda612ba.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ceea8c9a.css",
-    "static/js/main.89c67520.js"
+    "static/js/main.417d258a.js"
   ]
 }
