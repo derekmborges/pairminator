@@ -11,7 +11,7 @@ export const projectConverter = {
             pairees: project.pairees,
             availablePairees: project.availablePairees,
             lanes: project.lanes,
-            history: project.recordedPairsHistory,
+            recordedPairsHistory: project.recordedPairsHistory,
             currentPairs: project.currentPairs,
             pairingStatus: project.pairingStatus,
         }
@@ -26,7 +26,7 @@ export const projectConverter = {
                 pairees: data.pairees,
                 availablePairees: data.availablePairees,
                 lanes: data.lanes,
-                recordedPairsHistory: data.history.map((h: any) => ({
+                recordedPairsHistory: data.recordedPairsHistory.map((h: any) => ({
                     ...h,
                     date: h.date.toDate()
                 } as RecordedPairs)),
