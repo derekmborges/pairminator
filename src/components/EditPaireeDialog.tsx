@@ -47,8 +47,19 @@ export const EditPaireeDialog = ({
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button onClick={update}>Update</Button>
+                <Button
+                    color="inherit"
+                    onClick={handleClose}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    color="info"
+                    variant="contained"
+                    onClick={update}
+                >
+                    Update
+                </Button>
             </DialogActions>
         </Dialog>
     )

@@ -74,14 +74,14 @@ export const Pairs = (): JSX.Element => {
                   size='medium'
                   label={pair.pairee1.name}
                   variant='filled'
-                  color={pairingState === PairingState.RECORDED ? 'success' : 'primary'}
+                  color={pairingState === PairingState.RECORDED ? 'default' : 'primary'}
                 />
                 {pair.pairee2 && (
                   <Chip
                     size='medium'
                     label={pair.pairee2.name}
                     variant='filled'
-                    color={pairingState === PairingState.RECORDED ? 'success' : 'primary'}
+                    color={pairingState === PairingState.RECORDED ? 'default' : 'primary'}
                   />
                 )}
               </Stack>
