@@ -4,8 +4,8 @@ import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { usePairminatorContext } from '../context/PairminatorContext'
-import { Pairee } from '../models/interface'
+import { usePairminatorContext } from '../../context/PairminatorContext'
+import { Pairee } from '../../models/interface'
 import IconButton from '@mui/material/IconButton'
 import EditIcon from '@mui/icons-material/Edit'
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
@@ -15,7 +15,8 @@ import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import PersonIcon from '@mui/icons-material/Person'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { EditPaireeDialog } from './EditPaireeDialog'
+import { PaireeEditDialog } from './PaireeEditDialog'
+import { PaireeDeleteModal } from './PaireeDeleteModal'
 import { Theme } from '@mui/material'
 
 export const Pairees = (): JSX.Element => {
@@ -30,6 +31,7 @@ export const Pairees = (): JSX.Element => {
     const PaireeRow = ({ pairee }: { pairee: Pairee }): JSX.Element => {
         const [hovering, setHovering] = useState<boolean>(false);
         const [editing, setEditing] = useState<boolean>(false);
+        const [deleting, setDeleting] = useState<boolean>(false);
 
         return (
             <>
@@ -42,7 +44,7 @@ export const Pairees = (): JSX.Element => {
                             <IconButton onClick={() => setEditing(true)}>
                                 <EditIcon />
                             </IconButton>
-                            <IconButton aria-label="delete">
+                            <IconButton aria-label="delete" onClick={() => setDeleting(true)}>
                                 <DeleteIcon />
                             </IconButton>
                         </>
@@ -58,10 +60,15 @@ export const Pairees = (): JSX.Element => {
                     </ListItemIcon>
                     <ListItemText primary={pairee.name} />
                 </ListItem>
-                <EditPaireeDialog
+                <PaireeEditDialog
                     open={editing}
                     pairee={pairee}
                     handleClose={() => setEditing(false)}
+                />
+                <PaireeDeleteModal
+                    open={deleting}
+                    pairee={pairee}
+                    handleClose={() => setDeleting(false)}
                 />
             </>
         )

@@ -6,8 +6,8 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
 import React, { useState } from 'react'
-import { usePairminatorContext } from '../context/PairminatorContext'
-import { Pairee } from '../models/interface'
+import { usePairminatorContext } from '../../context/PairminatorContext'
+import { Pairee } from '../../models/interface'
 
 type Props = {
     open: boolean
@@ -15,7 +15,7 @@ type Props = {
     handleClose: () => void
 }
 
-export const EditPaireeDialog = ({
+export const PaireeEditDialog = ({
     pairee,
     open,
     handleClose

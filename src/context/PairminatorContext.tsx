@@ -20,6 +20,7 @@ export interface PairminatorContextT {
     pairees: Pairee[];
     addPairee: (name: string) => void;
     updatePairee: (id: number, updatedName: string) => void;
+    deletePairee: (id: number) => void;
     availablePairees: Pairee[];
     togglePaireeAvailability: (pairee: Pairee) => void;
     pairingState: PairingState;
@@ -108,17 +109,33 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     }
 
     const updatePairee = (id: number, updatedName: string) => {
-        const pairee = pairees.find(p => p.id === id);
-        if (pairee !== undefined) {
+        const paireeIndex = pairees.findIndex(p => p.id === id)
+        if (paireeIndex !== -1) {
             const paireesCopy: Pairee[] = cloneDeep(pairees);
-            const index = paireesCopy.findIndex(p => p.id === pairee.id);
-            paireesCopy[index].name = updatedName
-
-            const availablePaireesCopy = cloneDeep(availablePairees)
-            const index2 = availablePaireesCopy.findIndex(p => p.id === pairee.id)
-            availablePaireesCopy[index2].name = updatedName
-
+            paireesCopy[paireeIndex].name = updatedName
             setPairees([...paireesCopy])
+        }
+
+        const availablePaireeIndex = availablePairees.findIndex(p => p.id === id)
+        if (availablePaireeIndex !== -1) {
+            const availablePaireesCopy = cloneDeep(availablePairees)
+            availablePaireesCopy[availablePaireeIndex].name = updatedName
+            setAvailablePairees([...availablePaireesCopy])
+        }
+    }
+
+    const deletePairee = (id: number) => {
+        const paireeIndex = pairees.findIndex(p => p.id === id);
+        if (paireeIndex !== -1) {
+            const paireesCopy = cloneDeep(pairees)
+            paireesCopy.splice(paireeIndex, 1)
+            setPairees([...paireesCopy])
+        }
+
+        const availablePaireeIndex = availablePairees.findIndex(p => p.id === id)
+        if (availablePaireeIndex !== -1) {
+            const availablePaireesCopy = cloneDeep(availablePairees)
+            availablePaireesCopy.splice(availablePaireeIndex, 1)
             setAvailablePairees([...availablePaireesCopy])
         }
     }
@@ -294,6 +311,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         pairees,
         addPairee,
         updatePairee,
+        deletePairee,
         availablePairees,
         togglePaireeAvailability,
         pairingState,
