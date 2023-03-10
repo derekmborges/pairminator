@@ -6,12 +6,11 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import { Pairee } from '../../models/interface'
-import { usePairminatorContext } from '../../context/PairminatorContext'
 
 type Props = {
     open: boolean
     pairee: Pairee
-    handleClose: () => void
+    handleClose: (id?: number) => void
 }
 
 export const PaireeDeleteModal = ({
@@ -19,13 +18,6 @@ export const PaireeDeleteModal = ({
     pairee,
     handleClose
 }: Props): JSX.Element => {
-    const { deletePairee } = usePairminatorContext()
-
-    const confirmDelete = () => {
-        deletePairee(pairee.id)
-        handleClose()
-    }
-
     return (
         <Dialog open={open} onClose={() => handleClose()}>
             <DialogTitle>Confirmation</DialogTitle>
@@ -37,14 +29,14 @@ export const PaireeDeleteModal = ({
             <DialogActions>
                 <Button
                     color="inherit"
-                    onClick={handleClose}
+                    onClick={() => handleClose()}
                 >
                     Cancel
                 </Button>
                 <Button
                     color="error"
                     variant="contained"
-                    onClick={confirmDelete}
+                    onClick={() => handleClose(pairee.id)}
                 >
                     Delete
                 </Button>

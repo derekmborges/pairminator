@@ -18,14 +18,24 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { PaireeEditDialog } from './PaireeEditDialog'
 import { PaireeDeleteModal } from './PaireeDeleteModal'
 import { Theme } from '@mui/material'
+import Snackbar from '@mui/material/Snackbar'
 
 export const Pairees = (): JSX.Element => {
-    const { pairees, addPairee } = usePairminatorContext();
+    const { pairees, addPairee, deletePairee } = usePairminatorContext();
     const [newPaireeName, setNewPaireeName] = useState<string>('');
+
+    const [paireeDeleted, setPaireeDeleted] = useState<boolean>(false)
 
     const add = () => {
         addPairee(newPaireeName);
         setNewPaireeName('');
+    }
+
+    const handleCloseDeleteModal = (id?: number) => {
+        if (id) {
+            deletePairee(id)
+            setPaireeDeleted(true)
+        }
     }
 
     const PaireeRow = ({ pairee }: { pairee: Pairee }): JSX.Element => {
@@ -68,59 +78,67 @@ export const Pairees = (): JSX.Element => {
                 <PaireeDeleteModal
                     open={deleting}
                     pairee={pairee}
-                    handleClose={() => setDeleting(false)}
+                    handleClose={handleCloseDeleteModal}
                 />
             </>
         )
     }
 
     return (
-        <Paper sx={{ mt: 3, p: 2, display: 'flex', flexDirection: 'column' }}>
-            <Grid2 container>
-                <Grid2 xs={12} md={8}>
-                    <Typography component="h2" variant="h6" color="secondary" gutterBottom>
-                        Pairees
-                    </Typography>
-                    {pairees.length > 0 ? (
-                        <List>
-                            {pairees.map((pairee: Pairee) => (
-                                <PaireeRow key={pairee.id} pairee={pairee} />
-                            ))}
-                        </List>
-                    ) : (
-                        <Typography variant='body1' fontStyle='italic'>
-                            No pairees added yet.
+        <>
+            <Paper sx={{ mt: 3, p: 2, display: 'flex', flexDirection: 'column' }}>
+                <Grid2 container>
+                    <Grid2 xs={12} md={8}>
+                        <Typography component="h2" variant="h6" color="secondary" gutterBottom>
+                            Pairees
                         </Typography>
-                    )}
-                </Grid2>
-                <Grid2 xs={12} md={4}>
-                    <Typography component="h2" variant="h6" color="secondary" gutterBottom>
-                        Add Pairee
-                    </Typography>
-                    <Box>
-                        <TextField
-                            id="pairee-name"
-                            placeholder='Name (min. 2 chars)'
-                            value={newPaireeName}
-                            onChange={(e) => setNewPaireeName(e.target.value)}
-                            onKeyUp={(e) => {
-                                if (e.key === 'Enter' && newPaireeName.length >= 2) {
-                                    add()
-                                }
-                            }}
-                        />
-                    </Box>
-                    <Box my={2}>
-                        <Button
-                            variant='contained'
-                            disabled={newPaireeName.length < 2}
-                            onClick={add}
-                        >
+                        {pairees.length > 0 ? (
+                            <List>
+                                {pairees.map((pairee: Pairee) => (
+                                    <PaireeRow key={pairee.id} pairee={pairee} />
+                                ))}
+                            </List>
+                        ) : (
+                            <Typography variant='body1' fontStyle='italic'>
+                                No pairees added yet.
+                            </Typography>
+                        )}
+                    </Grid2>
+                    <Grid2 xs={12} md={4}>
+                        <Typography component="h2" variant="h6" color="secondary" gutterBottom>
                             Add Pairee
-                        </Button>
-                    </Box>
+                        </Typography>
+                        <Box>
+                            <TextField
+                                id="pairee-name"
+                                placeholder='Name (min. 2 chars)'
+                                value={newPaireeName}
+                                onChange={(e) => setNewPaireeName(e.target.value)}
+                                onKeyUp={(e) => {
+                                    if (e.key === 'Enter' && newPaireeName.length >= 2) {
+                                        add()
+                                    }
+                                }}
+                            />
+                        </Box>
+                        <Box my={2}>
+                            <Button
+                                variant='contained'
+                                disabled={newPaireeName.length < 2}
+                                onClick={add}
+                            >
+                                Add Pairee
+                            </Button>
+                        </Box>
+                    </Grid2>
                 </Grid2>
-            </Grid2>
-        </Paper>
+            </Paper>
+            <Snackbar
+                open={paireeDeleted}
+                autoHideDuration={5000}
+                onClose={() => setPaireeDeleted(false)}
+                message="Pairee deleted successfully"
+            />
+        </>
     )
 }
