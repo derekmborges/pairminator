@@ -19,16 +19,19 @@ import { PaireeEditDialog } from './PaireeEditDialog'
 import { PaireeDeleteModal } from './PaireeDeleteModal'
 import { Theme } from '@mui/material'
 import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
 
 export const Pairees = (): JSX.Element => {
     const { pairees, addPairee, deletePairee } = usePairminatorContext();
     const [newPaireeName, setNewPaireeName] = useState<string>('');
 
+    const [paireeAdded, setPaireeAdded] = useState<boolean>(false)
     const [paireeDeleted, setPaireeDeleted] = useState<boolean>(false)
 
     const add = () => {
         addPairee(newPaireeName);
         setNewPaireeName('');
+        setPaireeAdded(true)
     }
 
     const handleCloseDeleteModal = (id?: number) => {
@@ -131,14 +134,26 @@ export const Pairees = (): JSX.Element => {
                             </Button>
                         </Box>
                     </Grid2>
+                <Snackbar
+                    open={paireeDeleted}
+                    autoHideDuration={3000}
+                    onClose={() => setPaireeDeleted(false)}
+                >
+                    <Alert severity='error'>
+                        Pairee deleted successfully
+                    </Alert>
+                </Snackbar>
+                <Snackbar
+                    open={paireeAdded}
+                    autoHideDuration={3000}
+                    onClose={() => setPaireeAdded(false)}
+                >
+                    <Alert severity='success'>
+                        Pairee added successfully
+                    </Alert>
+                </Snackbar>
                 </Grid2>
             </Paper>
-            <Snackbar
-                open={paireeDeleted}
-                autoHideDuration={5000}
-                onClose={() => setPaireeDeleted(false)}
-                message="Pairee deleted successfully"
-            />
         </>
     )
 }
