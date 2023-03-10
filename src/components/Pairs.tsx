@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
@@ -10,6 +10,8 @@ import { usePairminatorContext } from '../context/PairminatorContext'
 import { Pair, Pairee } from '../models/interface'
 import { PairingState } from '../models/enum'
 import LinearProgress from '@mui/material/LinearProgress'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
 
 export const Pairs = (): JSX.Element => {
   const {
@@ -22,6 +24,13 @@ export const Pairs = (): JSX.Element => {
     resetCurrentPairs,
     recordCurrentPairs
   } = usePairminatorContext()
+
+  const [pairsRecorded, setPairsRecorded] = useState<boolean>(false)
+
+  const record = () => {
+    recordCurrentPairs()
+    setPairsRecorded(true)
+  }
 
   return (
     <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
@@ -46,7 +55,7 @@ export const Pairs = (): JSX.Element => {
                     size='medium'
                     label={pairee.name}
                     variant={availablePairees.some(p => p.id === pairee.id) ? 'filled' : 'outlined'}
-                    color={availablePairees.some(p => p.id === pairee.id) ? 'primary' : 'default'}
+                    color={availablePairees.some(p => p.id === pairee.id) ? 'info' : 'default'}
                     onClick={() => togglePaireeAvailability(pairee)}
                   />
                 </Grid2>
@@ -74,14 +83,14 @@ export const Pairs = (): JSX.Element => {
                   size='medium'
                   label={pair.pairee1.name}
                   variant='filled'
-                  color={pairingState === PairingState.RECORDED ? 'default' : 'primary'}
+                  color={pairingState === PairingState.RECORDED ? 'primary' : 'secondary'}
                 />
                 {pair.pairee2 && (
                   <Chip
                     size='medium'
                     label={pair.pairee2.name}
                     variant='filled'
-                    color={pairingState === PairingState.RECORDED ? 'default' : 'primary'}
+                    color={pairingState === PairingState.RECORDED ? 'primary' : 'secondary'}
                   />
                 )}
               </Stack>
@@ -94,7 +103,7 @@ export const Pairs = (): JSX.Element => {
         {[PairingState.INITIAL, PairingState.ASSIGNING].includes(pairingState) && (
           <Stack direction='row' alignItems='center' spacing={2}>
             <Button
-              color="primary"
+              color="info"
               variant='contained'
               size='large'
               disabled={availablePairees.length < 2 || pairingState === PairingState.ASSIGNING}
@@ -117,7 +126,7 @@ export const Pairs = (): JSX.Element => {
             color="secondary"
             variant='contained'
             size='large'
-            onClick={recordCurrentPairs}
+            onClick={record}
           >
             Record
           </Button>
@@ -133,6 +142,16 @@ export const Pairs = (): JSX.Element => {
           </Button>
         )}
       </Stack>
+
+      <Snackbar
+        open={pairsRecorded}
+        autoHideDuration={3000}
+        onClose={() => setPairsRecorded(false)}
+      >
+        <Alert severity='success'>
+          Pairs recorded
+        </Alert>
+      </Snackbar>
     </Paper>
   )
 }
