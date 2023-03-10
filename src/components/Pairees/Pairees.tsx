@@ -22,13 +22,22 @@ import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 
 export const Pairees = (): JSX.Element => {
-    const { pairees, addPairee, deletePairee } = usePairminatorContext();
-    const [newPaireeName, setNewPaireeName] = useState<string>('');
+    const { pairees, addPairee, deletePairee } = usePairminatorContext()
+    const [newPaireeName, setNewPaireeName] = useState<string>('')
+    const [newPaireeError, setNewPaireeError] = useState<boolean>(false)
 
     const [paireeAdded, setPaireeAdded] = useState<boolean>(false)
     const [paireeDeleted, setPaireeDeleted] = useState<boolean>(false)
 
     const add = () => {
+        setNewPaireeError(false)
+
+        const paireeExists: boolean = !!pairees.find(p => p.name === newPaireeName)
+        if (paireeExists) {
+            setNewPaireeError(true)
+            return
+        }
+
         addPairee(newPaireeName);
         setNewPaireeName('');
         setPaireeAdded(true)
@@ -124,6 +133,11 @@ export const Pairees = (): JSX.Element => {
                                 }}
                             />
                         </Box>
+                        {newPaireeError && (
+                            <Typography variant='caption' color='error.main'>
+                                Pairee name already exists.
+                            </Typography>
+                        )}
                         <Box my={2}>
                             <Button
                                 variant='contained'
@@ -139,7 +153,7 @@ export const Pairees = (): JSX.Element => {
                     autoHideDuration={3000}
                     onClose={() => setPaireeDeleted(false)}
                 >
-                    <Alert severity='error'>
+                    <Alert severity='success'>
                         Pairee deleted successfully
                     </Alert>
                 </Snackbar>
