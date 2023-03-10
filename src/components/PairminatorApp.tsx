@@ -3,7 +3,7 @@ import AppBar from "@mui/material/AppBar";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
-import { Theme } from "@mui/material";
+import { IconButton, Theme } from "@mui/material";
 import Button from "@mui/material/Button";
 import Container from "@mui/system/Container";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
@@ -11,6 +11,7 @@ import { HashRouter } from "react-router-dom";
 import { AppRouter } from "./AppRouter";
 import { usePairminatorContext } from "../context/PairminatorContext";
 import Stack from "@mui/system/Stack";
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 export const PairminatorApp = (): JSX.Element => {
   const { activeProject, logOutOfProject } = usePairminatorContext()
@@ -25,15 +26,19 @@ export const PairminatorApp = (): JSX.Element => {
           }}
         >
           <Toolbar>
-            <Typography
-              component="h1"
-              variant="h6"
-              color="inherit"
-              noWrap
-              sx={{ flexGrow: 1 }}
-            >
-              Pairminator
-            </Typography>
+            <Stack direction="row" alignItems='center' spacing={1} sx={{ flexGrow: 1 }}>
+              <Typography
+                component="h1"
+                variant="h6"
+                color="inherit"
+                noWrap
+              >
+                Pairminator
+              </Typography>
+              <IconButton href="https://github.com/derekmborges/pairminator" target="_blank">
+                <GitHubIcon />
+              </IconButton>
+            </Stack>
             {activeProject && (
               <Stack direction='row' spacing={2} alignItems='center'>
                 <Typography>
