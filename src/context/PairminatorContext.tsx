@@ -231,7 +231,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             const lane = freeLanes[0]
             const pair: Pair = {
                 pairee1: p1,
-                pairee2: p2,
+                ...(p2 && {pairee2: p2}),
                 lane
             }
             pairs.push(pair)
