@@ -73,10 +73,13 @@ export const Pairs = (): JSX.Element => {
       )}
       {[PairingState.ASSIGNED, PairingState.RECORDED].includes(pairingState) && currentPairs && (
         <Grid2 container px={0} spacing={2}>
-          {currentPairs.map((pair: Pair) => (
+          {currentPairs.map((pair: Pair, index: number) => (
             <Grid2 key={pair.lane.id}>
-              <Stack direction='column' alignItems='center' spacing={1}>
-                <Typography>
+              <Stack direction='column' alignItems='center' spacing={1}
+                borderRight={index < (currentPairs.length-1) ? '2px dashed grey' : 'none'}
+                pr={2}
+              >
+                <Typography variant='subtitle1'>
                   {pair.lane.name}
                 </Typography>
                 <Chip
