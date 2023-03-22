@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { RecordedPairs, Lane, Pair, Pairee, Project } from "../models/interface";
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isEqual } from 'lodash'
 import { PairingState } from "../models/enum";
 import { useDatabaseContext } from "./DatabaseContext";
 
@@ -283,7 +283,20 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         async function saveProject() {
             if (activeProject) {
                 const project = await handleGetProject(activeProject.id)
+
                 if (project) {
+                    // check if project has changed
+                    if (isEqual(project.pairees, pairees)
+                        && isEqual(project.availablePairees, availablePairees)
+                        && isEqual(project.pairingStatus, pairingState)
+                        && isEqual(project.lanes, lanes)
+                        && isEqual(project.currentPairs, currentPairs)
+                        && isEqual(project.recordedPairsHistory, recordedPairsHistory)) {
+                        console.log('DB is up to date')
+                        return
+                    }
+
+                    console.log('syncing project to DB')
                     const projectUpdates: Project = {
                         ...project,
                         pairees,
