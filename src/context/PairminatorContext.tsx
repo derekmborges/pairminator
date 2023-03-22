@@ -3,6 +3,7 @@ import { RecordedPairs, Lane, Pair, Pairee, Project } from "../models/interface"
 import { cloneDeep, isEqual } from 'lodash'
 import { PairingState } from "../models/enum";
 import { useDatabaseContext } from "./DatabaseContext";
+import { useAuthContext } from "./AuthContext";
 
 const getNextId = (ids: number[]): number => {
     return ids.length > 0
@@ -11,12 +12,6 @@ const getNextId = (ids: number[]): number => {
 }
 
 export interface PairminatorContextT {
-    initializing: boolean;
-    activeProject: Project | null;
-    logIntoProject: (inputProjectName: string, inputPassword: string) => Promise<boolean>;
-    logOutOfProject: () => void;
-    isProjectNameAvailable: (name: string) => Promise<boolean>;
-    addProject: (projectName: string, password: string) => Promise<Project>;
     pairees: Pairee[];
     addPairee: (name: string) => void;
     updatePairee: (id: number, updatedName: string) => void;
@@ -49,50 +44,26 @@ interface Props {
 export const LOCAL_STORAGE_PROJECT_KEY = 'pairminatorActiveProjectId'
 
 export const PairminatorProvider: React.FC<Props> = ({ children }) => {
-    const [initializing, setInitializing] = useState<boolean>(true)
+    const { currentProject } = useAuthContext()
 
     /* BEGIN PROJECT */
-    const { handleAddProject, handleSearchProjects, handleGetProject, handleUpdateProject } = useDatabaseContext()
-    const [activeProject, setActiveProject] = useState<Project | null>(null)
-
-    const isProjectNameAvailable = async (name: string): Promise<boolean> => {
-        const projects = await handleSearchProjects(name)
-        return projects.length === 0
-    }
-
-    const addProject = async (projectName: string, password: string): Promise<Project> => {
-        const project = await handleAddProject(projectName, password)
-        loadProject(project)
-        return project
-    }
+    const { handleGetProject, handleUpdateProject } = useDatabaseContext()
 
     const loadProject = (project: Project) => {
-        setActiveProject(project)
         setPairees(project.pairees)
         setAvailablePairees(project.availablePairees)
         setPairingState(project.pairingStatus)
         setLanes(project.lanes)
         setCurrentPairs(project.currentPairs)
         setRecordedPairsHistory(project.recordedPairsHistory)
-        window.localStorage.setItem(LOCAL_STORAGE_PROJECT_KEY, project.id)
+        // window.localStorage.setItem(LOCAL_STORAGE_PROJECT_KEY, project.id)
     }
 
-    const logIntoProject = async (inputProjectName: string, inputPassword: string): Promise<boolean> => {
-        const projects = await handleSearchProjects(inputProjectName)
-        if (projects.length === 1) {
-            const project = projects[0]
-            if (project.password === inputPassword) {
-                loadProject(project)
-                return true
-            }
+    useEffect(() => {
+        if (currentProject) {
+            loadProject(currentProject)
         }
-        return false
-    }
-
-    const logOutOfProject = () => {
-        setActiveProject(null)
-        window.localStorage.removeItem(LOCAL_STORAGE_PROJECT_KEY)
-    }
+    }, [currentProject])
     /* END PROJECT */
 
     /* BEGIN PAIREES */
@@ -265,24 +236,24 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     }
     /* END PAIRS */
 
-    useEffect(() => {
-        async function loadFromStorage() {
-            const storedProjectId = window.localStorage.getItem(LOCAL_STORAGE_PROJECT_KEY)
-            if (storedProjectId) {
-                const project = await handleGetProject(storedProjectId)
-                if (project) {
-                    loadProject(project)
-                }
-            }
-            setInitializing(false)
-        }
-        loadFromStorage()
-    }, [handleGetProject])
+    // useEffect(() => {
+    //     async function loadFromStorage() {
+    //         const storedProjectId = window.localStorage.getItem(LOCAL_STORAGE_PROJECT_KEY)
+    //         if (storedProjectId) {
+    //             const project = await handleGetProject(storedProjectId)
+    //             if (project) {
+    //                 loadProject(project)
+    //             }
+    //         }
+    //         setInitializing(false)
+    //     }
+    //     loadFromStorage()
+    // }, [handleGetProject])
 
     useEffect(() => {
         async function saveProject() {
-            if (activeProject) {
-                const project = await handleGetProject(activeProject.id)
+            if (currentProject) {
+                const project = await handleGetProject(currentProject.id)
 
                 if (project) {
                     // check if project has changed
@@ -315,12 +286,6 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     }, [pairingState, pairees, availablePairees, currentPairs, lanes, recordedPairsHistory])
     
     const contextValue: PairminatorContextT = {
-        initializing,
-        activeProject,
-        logIntoProject,
-        logOutOfProject,
-        isProjectNameAvailable,
-        addProject,
         pairees,
         addPairee,
         updatePairee,

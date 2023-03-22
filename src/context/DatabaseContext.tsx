@@ -7,7 +7,7 @@ import { Project } from "../models/interface";
 
 
 interface DatabaseContextT {
-    handleAddProject: (name: string, password: string) => Promise<Project>;
+    handleAddProject: (id: string, name: string) => Promise<Project>;
     handleSearchProjects: (nameSearch: string) => Promise<Project[]>;
     handleGetProject: (projectId: string) => Promise<Project | undefined>;
     handleUpdateProject: (project: Project) => void;
@@ -15,7 +15,7 @@ interface DatabaseContextT {
 
 export const DatabaseContext = createContext<DatabaseContextT | undefined>(undefined);
 
-export const useDatabaseContext  = () => {
+export const useDatabaseContext = () => {
     const context = useContext(DatabaseContext);
     if (context === undefined) {
         throw new Error('useDatabaseContext must be used within a Database Provider');
@@ -31,12 +31,11 @@ export const COLLECTION_PROJECTS = 'projects'
 
 export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
 
-    const handleAddProject = async (name: string, password: string): Promise<Project> => {
-        const docRef = await addDoc(collection(database, COLLECTION_PROJECTS), {})
+    const handleAddProject = async (id: string, name: string): Promise<Project> => {
+        const projectRef = doc(database, COLLECTION_PROJECTS, id).withConverter(projectConverter)
         const newProject: Project = {
-            id: docRef.id,
+            id,
             name,
-            password,
             pairees: [],
             availablePairees: [],
             lanes: [],
@@ -44,7 +43,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
             recordedPairsHistory: [],
             pairingStatus: PairingState.INITIAL,
         }
-        await setDoc(docRef, newProject)
+        await setDoc(projectRef, newProject)
         return newProject
     }
 
