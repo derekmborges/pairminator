@@ -219,20 +219,34 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             ).length
             soloCounts.set(pairee.id, soloCount)
         }
+        console.log('solos:', soloCounts)
 
         const getPaireeIdFromKey = (key: string, i: number): number => parseInt(key.split('-')[i])
         return new Map(
             [...pairMap]
-                // sort by solo frequency
-                .sort((a, b) =>
-                    (soloCounts.get(getPaireeIdFromKey(b[0], 0)) || 0) - (soloCounts.get(getPaireeIdFromKey(a[0], 0)) || 0)
-                )
-                .sort((a, b) =>
-                    (soloCounts.get(getPaireeIdFromKey(b[0], 1)) || 0) - (soloCounts.get(getPaireeIdFromKey(a[0], 1)) || 0)
-                )
-                // sort by pair frequency and recency
-                .sort((a, b) => a[1].count - b[1].count)
-                .sort((a, b) => !a[1].lastDate || !b[1].lastDate || a[1].lastDate < b[1].lastDate ? -1 : 1)
+                .sort((a, b) => {
+                    if (a[1].lastDate && b[1].lastDate) {
+                        // First sort by pair count
+                        if (a[1].count !== b[1].count) {
+                            return a[1].count - b[1].count
+
+                        // Then sort by last paired date (asc)
+                        } else {
+                            return a[1].lastDate.valueOf() - b[1].lastDate.valueOf()
+                        }
+                    } else {
+                        if (a[1].lastDate || b[1].lastDate) {
+                            return a[1].count - b[1].count
+                        }
+
+                        // Lastly, sort by solo frequency
+                        const soloFreqA1 = (soloCounts.get(getPaireeIdFromKey(a[0], 0)) || 0)
+                        const soloFreqA2 = (soloCounts.get(getPaireeIdFromKey(a[0], 1)) || 0)
+                        const soloFreqB1 = (soloCounts.get(getPaireeIdFromKey(b[0], 0)) || 0)
+                        const soloFreqB2 = (soloCounts.get(getPaireeIdFromKey(b[0], 1)) || 0)
+                        return Math.min(soloFreqB1, soloFreqB2) - Math.min(soloFreqA1, soloFreqA2)
+                    }
+                })
         )
     }
 
@@ -246,7 +260,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         const addPair = (pairee1: Pairee, pairee2: Pairee | undefined) => {
             const lane = freeLanes[0]
 
-            console.log('assignment:', pairee1.name, pairee2?.name || 'solo')
+            console.log('assignment:', pairee1.name, '+', pairee2?.name || 'solo')
             const pair: Pair = {
                 pairee1,
                 ...(pairee2 && {pairee2}),
