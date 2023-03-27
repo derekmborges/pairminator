@@ -197,7 +197,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                     if (!pairMap.has(pairString)) {
                         const pairHistory = recordedPairsHistory.filter(h =>
                             h.pairs.some(p =>
-                                p.pairee1.id === pairee1.id && p.pairee2?.id === pairee2.id
+                                (p.pairee1.id === pairee1.id && p.pairee2?.id === pairee2.id) ||
+                                (p.pairee1.id === pairee2.id && p.pairee2?.id === pairee1.id)
                             )
                         )
                         pairMap.set(
