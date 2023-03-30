@@ -142,32 +142,84 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         setLanes([...lanes])
     }, [availablePairees])
 
-    const getHistoricalPairMap = (): Map<number, number[]> => {
-        const pairMap: Map<number, number[]> = new Map<number, number[]>()
+    interface DatedPairCount {
+        count: number
+        lastDate: Date | undefined
+    }
 
-        for (let assignment of recordedPairsHistory) {
-            for (let pair of assignment.pairs) {
-                if (pair.pairee2) {
-                    // add pairee2 to pairee1 ids
-                    const p1Pairs = pairMap.get(pair.pairee1.id)
-                    if (p1Pairs) {
-                        pairMap.set(pair.pairee1.id, [...p1Pairs, pair.pairee2.id])
-                    } else {
-                        pairMap.set(pair.pairee1.id, [pair.pairee2.id])
-                    }
+    // Map format: "<pairee1Id>-<pairee2Id>": #
+    // Represents every pair that is available and the frequency of that pair
+    // Sorted by solo frequency, pair frequency, and pair recency
+    const getAvailablePairHistoryMap = (): Map<string, DatedPairCount> => {
+        const pairMap: Map<string, DatedPairCount> = new Map()
+        const soloCounts: Map<number, number> = new Map()
+        const getPairString = (p1: Pairee, p2: Pairee): string => {
+            const firstId = Math.min(p1.id, p2.id)
+            const secondId = p1.id === firstId ? p2.id : p1.id
+            return `${firstId}-${secondId}`
+        }
+        const sortedAvailable = availablePairees.sort((a, b) => a.id - b.id)
 
-                    // add pairee1 to pairee2 ids
-                    const p2Pairs = pairMap.get(pair.pairee2.id)
-                    if (p2Pairs) {
-                        pairMap.set(pair.pairee2.id, [...p2Pairs, pair.pairee1.id])
-                    } else {
-                        pairMap.set(pair.pairee2.id, [pair.pairee1.id])
+        // build map of pair frequencies
+        for (let pairee1 of sortedAvailable) {
+            for (let pairee2 of sortedAvailable) {
+                if (pairee1.id !== pairee2.id) {
+                    const pairString = getPairString(pairee1, pairee2)
+                    if (!pairMap.has(pairString)) {
+                        const pairHistory = recordedPairsHistory.filter(h =>
+                            h.pairs.some(p =>
+                                (p.pairee1.id === pairee1.id && p.pairee2?.id === pairee2.id) ||
+                                (p.pairee1.id === pairee2.id && p.pairee2?.id === pairee1.id)
+                            )
+                        )
+                        pairMap.set(
+                            pairString,
+                            {
+                                count: pairHistory.length,
+                                lastDate: pairHistory.at(0)?.date
+                            }
+                        )
                     }
                 }
             }
         }
 
-        return pairMap
+        // build map of solo frequencies
+        for (let pairee of sortedAvailable) {
+            const soloCount: number = recordedPairsHistory.filter(h =>
+                h.pairs.some(p => p.pairee1.id === pairee.id && !p.pairee2)
+            ).length
+            soloCounts.set(pairee.id, soloCount)
+        }
+        console.log('solos:', soloCounts)
+
+        const getPaireeIdFromKey = (key: string, i: number): number => parseInt(key.split('-')[i])
+        return new Map(
+            [...pairMap]
+                .sort((a, b) => {
+                    if (a[1].lastDate && b[1].lastDate) {
+                        // First sort by pair count
+                        if (a[1].count !== b[1].count) {
+                            return a[1].count - b[1].count
+
+                        // Then sort by last paired date (asc)
+                        } else {
+                            return a[1].lastDate.valueOf() - b[1].lastDate.valueOf()
+                        }
+                    } else {
+                        if (a[1].lastDate || b[1].lastDate) {
+                            return a[1].count - b[1].count
+                        }
+
+                        // Lastly, sort by solo frequency
+                        const soloFreqA1 = (soloCounts.get(getPaireeIdFromKey(a[0], 0)) || 0)
+                        const soloFreqA2 = (soloCounts.get(getPaireeIdFromKey(a[0], 1)) || 0)
+                        const soloFreqB1 = (soloCounts.get(getPaireeIdFromKey(b[0], 0)) || 0)
+                        const soloFreqB2 = (soloCounts.get(getPaireeIdFromKey(b[0], 1)) || 0)
+                        return Math.min(soloFreqB1, soloFreqB2) - Math.min(soloFreqA1, soloFreqA2)
+                    }
+                })
+        )
     }
 
     const assignPairs = () => {
@@ -176,41 +228,55 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         let available: Pairee[] = cloneDeep(availablePairees)
         let freeLanes: Lane[] = cloneDeep(lanes)
 
-        const historicalPairsMap = getHistoricalPairMap()
-        console.log('history:', historicalPairsMap)
-
-        while (available.length) {
-            const p1 = available[0]
-            console.log('finding best match for', p1.id, p1.name)
-
-            // who's paired the least with p1
-            let leastPairedId: number | undefined
-            let leastPairedCount: number | undefined
-            for (let pair of available) {
-                if (pair.id !== p1.id) {
-                    const ids = historicalPairsMap.get(pair.id)
-                    const count = ids?.filter(id => id === p1.id).length || 0
-                    if (leastPairedCount === undefined || count < leastPairedCount) {
-                        leastPairedId = pair.id
-                        leastPairedCount = count
-                    }
-                }
-            }
-            const p2 = available.find(p => p.id === leastPairedId)
-            console.log('matched:', p2?.id, p2?.name)
-
+        const isAvailable = (id: number): boolean => available.some(p => p.id === id)
+        const addPair = (pairee1: Pairee, pairee2: Pairee | undefined) => {
             const lane = freeLanes[0]
+
+            console.log('assignment:', pairee1.name, '+', pairee2?.name || 'solo')
             const pair: Pair = {
-                pairee1: p1,
-                ...(p2 && {pairee2: p2}),
+                pairee1,
+                ...(pairee2 && {pairee2}),
                 lane
             }
             pairs.push(pair)
-            freeLanes.splice(0, 1)
 
-            available.splice(available.indexOf(p1), 1)
-            if (p2 !== undefined) {
-                available.splice(available.indexOf(p2), 1)
+            // remove used data
+            freeLanes.splice(0, 1)
+            available.splice(available.indexOf(pairee1), 1)
+            if (pairee2 !== undefined) {
+                available.splice(available.indexOf(pairee2), 1)
+            }
+        }
+
+        const sortedPairHistoryMap = getAvailablePairHistoryMap()
+        console.log('the sorted history map:')
+        console.log(sortedPairHistoryMap)
+
+        while (freeLanes.length) {
+            let pairee1
+            let pairee2
+
+            if (available.length > 1) {
+                // loop over and prioritize the least-paired entries first
+                for (let pairString of sortedPairHistoryMap.keys()) {
+                    // Get pairee IDs
+                    const paireeIds = pairString.split('-').map(value => parseInt(value))
+
+                    // If either aren't available to pair, move on
+                    if (paireeIds.some(id => !isAvailable(id))) {
+                        continue
+                    }
+
+                    pairee1 = available.find(p => p.id === paireeIds[0])
+                    pairee2 = available.find(p => p.id === paireeIds[1])
+                    break
+                }
+            } else {
+                pairee1 = available[0]
+            }
+
+            if (pairee1) {
+                addPair(pairee1, pairee2)
             }
         }
 
@@ -219,8 +285,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     }
 
     const resetCurrentPairs = () => {
-        setPairingState(PairingState.INITIAL)
         setCurrentPairs(null)
+        setPairingState(PairingState.INITIAL)
     }
 
     const [recordedPairsHistory, setRecordedPairsHistory] = useState<RecordedPairs[]>([])
@@ -263,7 +329,6 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                         && isEqual(project.lanes, lanes)
                         && isEqual(project.currentPairs, currentPairs)
                         && isEqual(project.recordedPairsHistory, recordedPairsHistory)) {
-                        console.log('DB is up to date')
                         return
                     }
 
