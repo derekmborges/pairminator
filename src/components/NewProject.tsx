@@ -1,32 +1,54 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import IconButton from '@mui/material/IconButton'
-import { usePairminatorContext } from '../context/PairminatorContext'
 import pearImg from '../images/pear.png'
+import { useAuthContext } from '../context/AuthContext'
+import { LoadingButton } from '@mui/lab'
 
 export const NewProject = (): JSX.Element => {
-    const { isProjectNameAvailable, addProject } = usePairminatorContext()
+    const { currentProject, createProject, projectNameExists } = useAuthContext()
     const [projectName, setProjectName] = useState<string>('')
-    const [nameError, setNameError] = useState<boolean | null>(null)
+    const [creating, setCreating] = useState<boolean>(false)
+    const [nameError, setNameError] = useState<string | null>(null)
     const [projectPassword, setProjectPassword] = useState<string>('')
     const navigate = useNavigate()
 
+    useEffect(() => {
+        if (currentProject) {
+          navigate({ pathname: '/dashboard' })
+        }
+    }, [currentProject, navigate])
+
     const create = async () => {
+        setCreating(true)
         setNameError(null)
-        if (projectName.length > 2) {
-            const isAvailable = await isProjectNameAvailable(projectName)
-            if (isAvailable) {
-                await addProject(projectName, projectPassword)
-                navigate({ pathname: '/dashboard' })
-            } else {
-                setNameError(true)
-            }
+
+        const invalidChar = projectName.match(/[@(),]/)
+        console.log(invalidChar)
+        if (invalidChar) {
+            setNameError(`Project name contains an invalid character: "${invalidChar}"`)
+            setCreating(false)
+            return
+        }
+
+        const nameExists = await projectNameExists(projectName)
+        if (nameExists) {
+            setNameError('Project name is taken, try another one.')
+            setCreating(false)
+            return
+        }
+
+        await createProject(projectName, projectPassword)
+    }
+
+    const onEnter = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && projectName.length >= 2 && projectPassword.length >= 6) {
+            create()
         }
     }
 
@@ -65,40 +87,33 @@ export const NewProject = (): JSX.Element => {
                     sx={{ width: 300 }}
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
-                    onKeyUp={(e) => {
-                        if (e.key === 'Enter') {
-                            create()
-                        }
-                    }}
+                    onKeyUp={onEnter}
                 />
                 <TextField
                     fullWidth
                     id="project-password"
                     type="password"
-                    placeholder='Password'
+                    placeholder='Password (at least 6 chars)'
                     variant='outlined'
                     sx={{ width: 300 }}
                     value={projectPassword}
                     onChange={(e) => setProjectPassword(e.target.value)}
-                    onKeyUp={(e) => {
-                        if (e.key === 'Enter') {
-                            create()
-                        }
-                    }}
+                    onKeyUp={onEnter}
                 />
                 {nameError && (
                     <Typography variant='body1' color='red'>
-                        Project name is taken, try another one.
+                        {nameError}
                     </Typography>
                 )}
-                <Button
+                <LoadingButton
                     variant="contained"
                     sx={{ width: 300 }}
-                    disabled={projectName.length < 2 || !projectPassword.length}
+                    disabled={projectName.length < 2 || projectPassword.length < 6}
                     onClick={create}
+                    loading={creating}
                 >
                     Create
-                </Button>
+                </LoadingButton>
             </Stack>
         </Grid2>
     )

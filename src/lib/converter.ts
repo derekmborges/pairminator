@@ -7,7 +7,6 @@ export const projectConverter = {
         return {
             id: project.id,
             name: project.name,
-            password: project.password,
             pairees: project.pairees,
             availablePairees: project.availablePairees,
             lanes: project.lanes,
@@ -22,7 +21,6 @@ export const projectConverter = {
             return {
                 id: data.id,
                 name: data.name,
-                password: data.password,
                 pairees: data.pairees,
                 availablePairees: data.availablePairees,
                 lanes: data.lanes,

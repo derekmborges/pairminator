@@ -3,18 +3,18 @@ import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
 import { History } from './History'
 import { Pairees } from './Pairees/Pairees'
 import { Pairs } from './Pairs'
-import { usePairminatorContext } from '../context/PairminatorContext'
 import { useNavigate } from 'react-router'
+import { useAuthContext } from '../context/AuthContext'
 
 export const Dashboard = (): JSX.Element => {
-    const { initializing, activeProject } = usePairminatorContext()
+    const { authenticating, currentProject } = useAuthContext()
     const navigate = useNavigate()
 
     useEffect(() => {
-        if (!initializing && !activeProject) {
+        if (!authenticating && !currentProject) {
             navigate({ pathname: '/' })
         }
-    }, [initializing, activeProject, navigate])
+    }, [authenticating, currentProject, navigate])
 
     return (
         <>

@@ -4,36 +4,37 @@ import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
 import Button from '@mui/material/Button'
-import { LOCAL_STORAGE_PROJECT_KEY, usePairminatorContext } from '../context/PairminatorContext'
 import { useNavigate } from 'react-router'
 import Divider from '@mui/material/Divider'
 import LoadingButton from '@mui/lab/LoadingButton'
 import pearImg from '../images/pear.png'
+import { useAuthContext } from '../context/AuthContext'
 
 export const ProjectLogin = (): JSX.Element => {
-  const { logIntoProject } = usePairminatorContext()
+  const { authenticating, currentProject, login } = useAuthContext()
   const [projectName, setProjectName] = useState<string>('')
   const [projectPassword, setProjectPassword] = useState<string>('')
-  const [loggingIn, setLoggingIn] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  useEffect(()=> {
-    if (window.localStorage.getItem(LOCAL_STORAGE_PROJECT_KEY)) {
-      window.localStorage.removeItem(LOCAL_STORAGE_PROJECT_KEY)
-    }
-  }, [])
-
-  const login = async() => {
-    setLoggingIn(true)
-    setError(null)
-    const success = await logIntoProject(projectName, projectPassword)
-    if (success) {
+  useEffect(() => {
+    if (currentProject) {
       navigate({ pathname: '/dashboard' })
-    } else {
-      setError('Invalid project name and password')
     }
-    setLoggingIn(false)
+  }, [currentProject, navigate])
+
+  const submitLogin = async() => {
+    setError(null)
+    const error = await login(projectName, projectPassword)
+    if (error) {
+      setError(error)
+    }
+  }
+
+  const onEnter = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !!projectName.length && !!projectPassword.length) {
+      submitLogin()
+    }
   }
 
   return (
@@ -62,11 +63,8 @@ export const ProjectLogin = (): JSX.Element => {
           sx={{ width: 300 }}
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-          onKeyUp={(e) => {
-            if (e.key === 'Enter') {
-              login()
-            }
-          }}
+          onKeyUp={onEnter}
+          disabled={authenticating}
         />
         <TextField
           fullWidth
@@ -77,23 +75,20 @@ export const ProjectLogin = (): JSX.Element => {
           sx={{ width: 300 }}
           value={projectPassword}
           onChange={(e) => setProjectPassword(e.target.value)}
-          onKeyUp={(e) => {
-            if (e.key === 'Enter') {
-              login()
-            }
-          }}
+          onKeyUp={onEnter}
+          disabled={authenticating}
         />
-        {!loggingIn && error && (
+        {!authenticating && error && (
           <Typography variant='body1' color='red'>
             {error}
           </Typography>
         )}
         <LoadingButton
-          loading={loggingIn}
+          loading={authenticating}
           variant='contained'
           color='secondary'
           sx={{ width: 300 }}
-          onClick={login}
+          onClick={submitLogin}
           disabled={!projectName.length || !projectPassword.length}
         >
           Login

@@ -9,12 +9,12 @@ import Container from "@mui/system/Container";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { HashRouter } from "react-router-dom";
 import { AppRouter } from "./AppRouter";
-import { usePairminatorContext } from "../context/PairminatorContext";
 import Stack from "@mui/system/Stack";
 import GitHubIcon from '@mui/icons-material/GitHub';
+import { useAuthContext } from "../context/AuthContext";
 
 export const PairminatorApp = (): JSX.Element => {
-  const { activeProject, logOutOfProject } = usePairminatorContext()
+  const { currentProject, logout } = useAuthContext()
 
   return (
     <HashRouter>
@@ -39,15 +39,15 @@ export const PairminatorApp = (): JSX.Element => {
                 <GitHubIcon />
               </IconButton>
             </Stack>
-            {activeProject && (
+            {currentProject && (
               <Stack direction='row' spacing={2} alignItems='center'>
                 <Typography>
-                  {activeProject.name}
+                  {currentProject.name}
                 </Typography>
                 <Button
                   variant="text"
                   color="inherit"
-                  onClick={logOutOfProject}
+                  onClick={logout}
                 >
                   Sign Out
                 </Button>

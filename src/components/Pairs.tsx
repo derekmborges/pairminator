@@ -15,11 +15,8 @@ import Alert from '@mui/material/Alert'
 
 export const Pairs = (): JSX.Element => {
   const {
-    pairees,
-    availablePairees,
+    project,
     togglePaireeAvailability,
-    pairingState,
-    currentPairs,
     assignPairs,
     resetCurrentPairs,
     recordCurrentPairs
@@ -31,6 +28,11 @@ export const Pairs = (): JSX.Element => {
     recordCurrentPairs()
     setPairsRecorded(true)
   }
+
+  const pairees = project?.pairees || []
+  const availablePairees = project?.availablePairees || []
+  const pairingState = project?.pairingStatus
+  const currentPairs = project?.currentPairs || []
 
   return (
     <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
@@ -71,7 +73,7 @@ export const Pairs = (): JSX.Element => {
       {pairingState === PairingState.ASSIGNING && (
         <LinearProgress color='inherit' sx={{ mt: 2 }} />
       )}
-      {[PairingState.ASSIGNED, PairingState.RECORDED].includes(pairingState) && currentPairs && (
+      {pairingState && [PairingState.ASSIGNED, PairingState.RECORDED].includes(pairingState) && currentPairs && (
         <Grid2 container px={0} spacing={2}>
           {currentPairs.map((pair: Pair, index: number) => (
             <Grid2 key={pair.lane.id}>
@@ -103,7 +105,7 @@ export const Pairs = (): JSX.Element => {
       )}
 
       <Stack direction="row" pt={3} pb={2} spacing={2}>
-        {[PairingState.INITIAL, PairingState.ASSIGNING].includes(pairingState) && (
+        {pairingState && [PairingState.INITIAL, PairingState.ASSIGNING].includes(pairingState) && (
           <Stack direction='row' alignItems='center' spacing={2}>
             <Button
               color="info"
@@ -134,7 +136,7 @@ export const Pairs = (): JSX.Element => {
             Record
           </Button>
         )}
-        {[PairingState.ASSIGNED, PairingState.RECORDED].includes(pairingState) && (
+        {pairingState && [PairingState.ASSIGNED, PairingState.RECORDED].includes(pairingState) && (
           <Button
             color="inherit"
             variant='contained'

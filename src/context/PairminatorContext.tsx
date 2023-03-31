@@ -1,175 +1,154 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { RecordedPairs, Lane, Pair, Pairee, Project } from "../models/interface";
+import { createContext, useContext, useEffect, useState } from "react"
+import { RecordedPairs, Lane, Pair, Pairee, Project } from "../models/interface"
 import { cloneDeep, isEqual } from 'lodash'
-import { PairingState } from "../models/enum";
-import { useDatabaseContext } from "./DatabaseContext";
+import { PairingState } from "../models/enum"
+import { useDatabaseContext } from "./DatabaseContext"
+import { useAuthContext } from "./AuthContext"
 
 const getNextId = (ids: number[]): number => {
     return ids.length > 0
         ? Math.max(...ids) + 1
-        : 1;
+        : 1
 }
 
 export interface PairminatorContextT {
-    initializing: boolean;
-    activeProject: Project | null;
-    logIntoProject: (inputProjectName: string, inputPassword: string) => Promise<boolean>;
-    logOutOfProject: () => void;
-    isProjectNameAvailable: (name: string) => Promise<boolean>;
-    addProject: (projectName: string, password: string) => Promise<Project>;
-    pairees: Pairee[];
-    addPairee: (name: string) => void;
-    updatePairee: (id: number, updatedName: string) => void;
-    deletePairee: (id: number) => void;
-    availablePairees: Pairee[];
-    togglePaireeAvailability: (pairee: Pairee) => void;
-    pairingState: PairingState;
-    currentPairs: Pair[] | null;
-    lanes: Lane[];
-    assignPairs: () => void;
-    resetCurrentPairs: () => void;
-    recordCurrentPairs: () => void;
-    recordedPairsHistory: RecordedPairs[];
+    project: Project | null
+    addPairee: (name: string) => void
+    updatePairee: (id: number, updatedName: string) => void
+    deletePairee: (id: number) => void
+    togglePaireeAvailability: (pairee: Pairee) => void
+    assignPairs: () => void
+    resetCurrentPairs: () => void
+    recordCurrentPairs: () => void
 }
 
-export const PairminatorContext = createContext<PairminatorContextT | undefined>(undefined);
+export const PairminatorContext = createContext<PairminatorContextT | undefined>(undefined)
 
 export const usePairminatorContext  = () => {
-    const context = useContext(PairminatorContext);
+    const context = useContext(PairminatorContext)
     if (context === undefined) {
-        throw new Error('usePairminatorContext must be used within a Pairminator Provider');
+        throw new Error('usePairminatorContext must be used within a Pairminator Provider')
     }
-    return context;
-};
+    return context
+}
 
 interface Props {
-    children: React.ReactNode;
+    children: React.ReactNode
 }
 
 export const LOCAL_STORAGE_PROJECT_KEY = 'pairminatorActiveProjectId'
 
 export const PairminatorProvider: React.FC<Props> = ({ children }) => {
-    const [initializing, setInitializing] = useState<boolean>(true)
+    const { currentProject } = useAuthContext()
 
     /* BEGIN PROJECT */
-    const { handleAddProject, handleSearchProjects, handleGetProject, handleUpdateProject } = useDatabaseContext()
-    const [activeProject, setActiveProject] = useState<Project | null>(null)
+    const [project, setProject] = useState<Project | null>(null)
+    const { handleGetProject, handleUpdateProject } = useDatabaseContext()
 
-    const isProjectNameAvailable = async (name: string): Promise<boolean> => {
-        const projects = await handleSearchProjects(name)
-        return projects.length === 0
-    }
-
-    const addProject = async (projectName: string, password: string): Promise<Project> => {
-        const project = await handleAddProject(projectName, password)
-        loadProject(project)
-        return project
-    }
-
-    const loadProject = (project: Project) => {
-        setActiveProject(project)
-        setPairees(project.pairees)
-        setAvailablePairees(project.availablePairees)
-        setPairingState(project.pairingStatus)
-        setLanes(project.lanes)
-        setCurrentPairs(project.currentPairs)
-        setRecordedPairsHistory(project.recordedPairsHistory)
-        window.localStorage.setItem(LOCAL_STORAGE_PROJECT_KEY, project.id)
-    }
-
-    const logIntoProject = async (inputProjectName: string, inputPassword: string): Promise<boolean> => {
-        const projects = await handleSearchProjects(inputProjectName)
-        if (projects.length === 1) {
-            const project = projects[0]
-            if (project.password === inputPassword) {
-                loadProject(project)
-                return true
-            }
+    useEffect(() => {
+        if (!project && currentProject) {
+            setProject(currentProject)
         }
-        return false
-    }
-
-    const logOutOfProject = () => {
-        setActiveProject(null)
-        window.localStorage.removeItem(LOCAL_STORAGE_PROJECT_KEY)
-    }
-    /* END PROJECT */
-
-    /* BEGIN PAIREES */
-    const [pairees, setPairees] = useState<Pairee[]>([]);
-    const [availablePairees, setAvailablePairees] = useState<Pairee[]>(pairees);
+    }, [currentProject, project])
     
     const addPairee = (name: string) => {
-        const newPairee: Pairee = {
-            id: getNextId(pairees.map(p => p.id)),
-            name,
+        if (project) {
+            const newPairee: Pairee = {
+                id: getNextId(project.pairees.map(p => p.id)),
+                name,
+            }
+
+            setProject({
+                ...project,
+                pairees: [...project.pairees, newPairee],
+                availablePairees: [...project.availablePairees, newPairee]
+            })
         }
-        setPairees([...pairees, newPairee]);
-        setAvailablePairees([...availablePairees, newPairee])
     }
 
     const updatePairee = (id: number, updatedName: string) => {
-        const paireeIndex = pairees.findIndex(p => p.id === id)
-        if (paireeIndex !== -1) {
-            const paireesCopy: Pairee[] = cloneDeep(pairees);
-            paireesCopy[paireeIndex].name = updatedName
-            setPairees([...paireesCopy])
-        }
+        if (project) {
+            const paireesCopy: Pairee[] = cloneDeep(project.pairees)
+            const availablePaireesCopy: Pairee[] = cloneDeep(project.availablePairees)
 
-        const availablePaireeIndex = availablePairees.findIndex(p => p.id === id)
-        if (availablePaireeIndex !== -1) {
-            const availablePaireesCopy = cloneDeep(availablePairees)
-            availablePaireesCopy[availablePaireeIndex].name = updatedName
-            setAvailablePairees([...availablePaireesCopy])
+            const paireeIndex = paireesCopy.findIndex(p => p.id === id)
+            if (paireeIndex !== -1) {
+                paireesCopy[paireeIndex].name = updatedName
+            }
+    
+            const availablePaireeIndex = availablePaireesCopy.findIndex(p => p.id === id)
+            if (availablePaireeIndex !== -1) {
+                availablePaireesCopy[availablePaireeIndex].name = updatedName
+            }
+
+            setProject({
+                ...project,
+                pairees: [...paireesCopy],
+                availablePairees: [...availablePaireesCopy]
+            })
         }
     }
 
     const deletePairee = (id: number) => {
-        const paireeIndex = pairees.findIndex(p => p.id === id);
-        if (paireeIndex !== -1) {
-            const paireesCopy = cloneDeep(pairees)
-            paireesCopy.splice(paireeIndex, 1)
-            setPairees([...paireesCopy])
-        }
+        if (project) {
+            const paireesCopy: Pairee[] = cloneDeep(project.pairees)
+            const availablePaireesCopy: Pairee[] = cloneDeep(project.availablePairees)
 
-        const availablePaireeIndex = availablePairees.findIndex(p => p.id === id)
-        if (availablePaireeIndex !== -1) {
-            const availablePaireesCopy = cloneDeep(availablePairees)
-            availablePaireesCopy.splice(availablePaireeIndex, 1)
-            setAvailablePairees([...availablePaireesCopy])
+            const paireeIndex = paireesCopy.findIndex(p => p.id === id)
+            if (paireeIndex !== -1) {
+                paireesCopy.splice(paireeIndex, 1)
+            }
+    
+            const availablePaireeIndex = availablePaireesCopy.findIndex(p => p.id === id)
+            if (availablePaireeIndex !== -1) {
+                availablePaireesCopy.splice(availablePaireeIndex, 1)
+            }
+
+            setProject({
+                ...project,
+                pairees: [...paireesCopy],
+                availablePairees: [...availablePaireesCopy]
+            })
         }
     }
 
     const togglePaireeAvailability = (pairee: Pairee) => {
-        const availableCopy: Pairee[] = cloneDeep(availablePairees)
-        const currentlyAvailable: boolean = availableCopy.some(p => p.id === pairee.id)
-        if (currentlyAvailable) {
-            const index: number = availableCopy.findIndex(p => p.id === pairee.id)
-            availableCopy.splice(index, 1)
-        } else {
-            availableCopy.push(pairee)
-        }
-        setAvailablePairees([...availableCopy])
-    }
-    /* END PAIREES */
-
-    /* BEGIN PAIRS */
-    const [pairingState, setPairingState] = useState<PairingState>(PairingState.INITIAL)
-    const [currentPairs, setCurrentPairs] = useState<Pair[] | null>(null);
-    const [lanes, setLanes] = useState<Lane[]>([]);
-    
-    useEffect(() => {
-        const lanesNeeded: number = Math.ceil(availablePairees.length / 2)
-        let lanes: Lane[] = []
-        for (let i=0; i < lanesNeeded; i++) {
-            const lane: Lane = {
-                id: getNextId(lanes.map(l => l.id)),
-                name: `Lane ${i+1}`
+        if (project) {
+            const availableCopy: Pairee[] = cloneDeep(project.availablePairees)
+            const currentlyAvailable: boolean = availableCopy.some(p => p.id === pairee.id)
+            if (currentlyAvailable) {
+                const index: number = availableCopy.findIndex(p => p.id === pairee.id)
+                availableCopy.splice(index, 1)
+            } else {
+                availableCopy.push(pairee)
             }
-            lanes.push(lane)
+
+            setProject({
+                ...project,
+                availablePairees: [...availableCopy]
+            })
         }
-        setLanes([...lanes])
-    }, [availablePairees])
+    }
+
+    useEffect(() => {
+        if (project) {
+            const lanesNeeded: number = Math.ceil(project.availablePairees.length / 2)
+            if (lanesNeeded !== project.lanes.length) {
+                let lanes: Lane[] = []
+                for (let i=0; i < lanesNeeded; i++) {
+                    const lane: Lane = {
+                        id: getNextId(lanes.map(l => l.id)),
+                        name: `Lane ${i+1}`
+                    }
+                    lanes.push(lane)
+                }
+                setProject({
+                    ...project,
+                    lanes
+                })
+            }
+        }
+    }, [project])
 
     interface DatedPairCount {
         count: number
@@ -187,7 +166,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             const secondId = p1.id === firstId ? p2.id : p1.id
             return `${firstId}-${secondId}`
         }
-        const sortedAvailable = availablePairees.sort((a, b) => a.id - b.id)
+        const sortedAvailable = project?.availablePairees.sort((a, b) => a.id - b.id) || []
 
         // build map of pair frequencies
         for (let pairee1 of sortedAvailable) {
@@ -195,12 +174,12 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                 if (pairee1.id !== pairee2.id) {
                     const pairString = getPairString(pairee1, pairee2)
                     if (!pairMap.has(pairString)) {
-                        const pairHistory = recordedPairsHistory.filter(h =>
+                        const pairHistory = project?.recordedPairsHistory.filter(h =>
                             h.pairs.some(p =>
                                 (p.pairee1.id === pairee1.id && p.pairee2?.id === pairee2.id) ||
                                 (p.pairee1.id === pairee2.id && p.pairee2?.id === pairee1.id)
                             )
-                        )
+                        ) || []
                         pairMap.set(
                             pairString,
                             {
@@ -215,10 +194,10 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
         // build map of solo frequencies
         for (let pairee of sortedAvailable) {
-            const soloCount: number = recordedPairsHistory.filter(h =>
+            const soloHistory = project?.recordedPairsHistory.filter(h =>
                 h.pairs.some(p => p.pairee1.id === pairee.id && !p.pairee2)
-            ).length
-            soloCounts.set(pairee.id, soloCount)
+            ) || []
+            soloCounts.set(pairee.id, soloHistory.length)
         }
         console.log('solos:', soloCounts)
 
@@ -252,158 +231,138 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     }
 
     const assignPairs = () => {
-        setPairingState(PairingState.ASSIGNING)
-        let pairs: Pair[] = []
-        let available: Pairee[] = cloneDeep(availablePairees)
-        let freeLanes: Lane[] = cloneDeep(lanes)
-
-        const isAvailable = (id: number): boolean => available.some(p => p.id === id)
-        const addPair = (pairee1: Pairee, pairee2: Pairee | undefined) => {
-            const lane = freeLanes[0]
-
-            console.log('assignment:', pairee1.name, '+', pairee2?.name || 'solo')
-            const pair: Pair = {
-                pairee1,
-                ...(pairee2 && {pairee2}),
-                lane
-            }
-            pairs.push(pair)
-
-            // remove used data
-            freeLanes.splice(0, 1)
-            available.splice(available.indexOf(pairee1), 1)
-            if (pairee2 !== undefined) {
-                available.splice(available.indexOf(pairee2), 1)
-            }
-        }
-
-        const sortedPairHistoryMap = getAvailablePairHistoryMap()
-        console.log('the sorted history map:')
-        console.log(sortedPairHistoryMap)
-
-        while (freeLanes.length) {
-            let pairee1
-            let pairee2
-
-            if (available.length > 1) {
-                // loop over and prioritize the least-paired entries first
-                for (let pairString of sortedPairHistoryMap.keys()) {
-                    // Get pairee IDs
-                    const paireeIds = pairString.split('-').map(value => parseInt(value))
-
-                    // If either aren't available to pair, move on
-                    if (paireeIds.some(id => !isAvailable(id))) {
-                        continue
-                    }
-
-                    pairee1 = available.find(p => p.id === paireeIds[0])
-                    pairee2 = available.find(p => p.id === paireeIds[1])
-                    break
+        if (project) {
+            setProject({
+                ...project,
+                pairingStatus: PairingState.ASSIGNING
+            })
+    
+            let pairs: Pair[] = []
+            let available: Pairee[] = cloneDeep(project.availablePairees)
+            let freeLanes: Lane[] = cloneDeep(project.lanes)
+    
+            const isAvailable = (id: number): boolean => available.some(p => p.id === id)
+            const addPair = (pairee1: Pairee, pairee2: Pairee | undefined) => {
+                const lane = freeLanes[0]
+    
+                console.log('assignment:', pairee1.name, '+', pairee2?.name || 'solo')
+                const pair: Pair = {
+                    pairee1,
+                    ...(pairee2 && {pairee2}),
+                    lane
                 }
-            } else {
-                pairee1 = available[0]
+                pairs.push(pair)
+    
+                // remove used data
+                freeLanes.splice(0, 1)
+                available.splice(available.indexOf(pairee1), 1)
+                if (pairee2 !== undefined) {
+                    available.splice(available.indexOf(pairee2), 1)
+                }
             }
-
-            if (pairee1) {
-                addPair(pairee1, pairee2)
+    
+            const sortedPairHistoryMap = getAvailablePairHistoryMap()
+            console.log('the sorted history map:')
+            console.log(sortedPairHistoryMap)
+    
+            while (freeLanes.length) {
+                let pairee1
+                let pairee2
+    
+                if (available.length > 1) {
+                    // loop over and prioritize the least-paired entries first
+                    for (let pairString of sortedPairHistoryMap.keys()) {
+                        // Get pairee IDs
+                        const paireeIds = pairString.split('-').map(value => parseInt(value))
+    
+                        // If either aren't available to pair, move on
+                        if (paireeIds.some(id => !isAvailable(id))) {
+                            continue
+                        }
+    
+                        pairee1 = available.find(p => p.id === paireeIds[0])
+                        pairee2 = available.find(p => p.id === paireeIds[1])
+                        break
+                    }
+                } else {
+                    pairee1 = available[0]
+                }
+    
+                if (pairee1) {
+                    addPair(pairee1, pairee2)
+                }
             }
+    
+            setProject({
+                ...project,
+                currentPairs: [...pairs],
+                pairingStatus: PairingState.ASSIGNED
+            })
         }
-
-        setCurrentPairs([...pairs])
-        setPairingState(PairingState.ASSIGNED)
     }
 
     const resetCurrentPairs = () => {
-        setCurrentPairs(null)
-        setPairingState(PairingState.INITIAL)
+        if (project) {
+            setProject({
+                ...project,
+                currentPairs: null,
+                pairingStatus: PairingState.INITIAL
+            })
+        }
     }
 
-    const [recordedPairsHistory, setRecordedPairsHistory] = useState<RecordedPairs[]>([])
     const recordCurrentPairs = () => {
-        if (currentPairs) {
+        if (project && project.currentPairs) {
             const recordedPairs: RecordedPairs = {
-                pairs: currentPairs,
+                pairs: project.currentPairs,
                 date: new Date()
             }
-            setRecordedPairsHistory([...recordedPairsHistory, recordedPairs])
-            setPairingState(PairingState.RECORDED)
+            setProject({
+                ...project,
+                recordedPairsHistory: [...project.recordedPairsHistory, recordedPairs]
+            })
         }
     }
-    /* END PAIRS */
-
-    useEffect(() => {
-        async function loadFromStorage() {
-            const storedProjectId = window.localStorage.getItem(LOCAL_STORAGE_PROJECT_KEY)
-            if (storedProjectId) {
-                const project = await handleGetProject(storedProjectId)
-                if (project) {
-                    loadProject(project)
-                }
-            }
-            setInitializing(false)
-        }
-        loadFromStorage()
-    }, [handleGetProject])
 
     useEffect(() => {
         async function saveProject() {
-            if (activeProject) {
-                const project = await handleGetProject(activeProject.id)
+            if (project) {
+                const remoteProject = await handleGetProject(project.id)
 
-                if (project) {
+                if (remoteProject) {
                     // check if project has changed
-                    if (isEqual(project.pairees, pairees)
-                        && isEqual(project.availablePairees, availablePairees)
-                        && isEqual(project.pairingStatus, pairingState)
-                        && isEqual(project.lanes, lanes)
-                        && isEqual(project.currentPairs, currentPairs)
-                        && isEqual(project.recordedPairsHistory, recordedPairsHistory)) {
+                    if (isEqual(project.pairees, remoteProject.pairees)
+                        && isEqual(project.availablePairees, remoteProject.availablePairees)
+                        && isEqual(project.pairingStatus, remoteProject.pairingStatus)
+                        && isEqual(project.lanes, remoteProject.lanes)
+                        && isEqual(project.currentPairs, remoteProject.currentPairs)
+                        && isEqual(project.recordedPairsHistory, remoteProject.recordedPairsHistory)) {
                         return
                     }
 
                     console.log('syncing project to DB')
-                    const projectUpdates: Project = {
-                        ...project,
-                        pairees,
-                        availablePairees,
-                        pairingStatus: pairingState,
-                        lanes,
-                        currentPairs,
-                        recordedPairsHistory,
-                    }
-                    handleUpdateProject(projectUpdates)
+                    handleUpdateProject(project)
                 }
             }
         }
         saveProject()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pairingState, pairees, availablePairees, currentPairs, lanes, recordedPairsHistory])
+    }, [project])
     
     const contextValue: PairminatorContextT = {
-        initializing,
-        activeProject,
-        logIntoProject,
-        logOutOfProject,
-        isProjectNameAvailable,
-        addProject,
-        pairees,
+        project,
         addPairee,
         updatePairee,
         deletePairee,
-        availablePairees,
         togglePaireeAvailability,
-        pairingState,
-        currentPairs,
-        lanes,
         assignPairs,
         resetCurrentPairs,
         recordCurrentPairs,
-        recordedPairsHistory,
-    };
+    }
 
     return (
         <PairminatorContext.Provider value={contextValue}>
             {children}
         </PairminatorContext.Provider>
-    );
+    )
 }
