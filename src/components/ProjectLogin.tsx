@@ -4,7 +4,6 @@ import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
 import Button from '@mui/material/Button'
-import { LOCAL_STORAGE_PROJECT_KEY } from '../context/PairminatorContext'
 import { useNavigate } from 'react-router'
 import Divider from '@mui/material/Divider'
 import LoadingButton from '@mui/lab/LoadingButton'
@@ -18,11 +17,6 @@ export const ProjectLogin = (): JSX.Element => {
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  // useEffect(()=> {
-  //   if (window.localStorage.getItem(LOCAL_STORAGE_PROJECT_KEY)) {
-  //     window.localStorage.removeItem(LOCAL_STORAGE_PROJECT_KEY)
-  //   }
-  // }, [])
   useEffect(() => {
     if (currentProject) {
       navigate({ pathname: '/dashboard' })
@@ -70,6 +64,7 @@ export const ProjectLogin = (): JSX.Element => {
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
           onKeyUp={onEnter}
+          disabled={authenticating}
         />
         <TextField
           fullWidth
@@ -81,6 +76,7 @@ export const ProjectLogin = (): JSX.Element => {
           value={projectPassword}
           onChange={(e) => setProjectPassword(e.target.value)}
           onKeyUp={onEnter}
+          disabled={authenticating}
         />
         {!authenticating && error && (
           <Typography variant='body1' color='red'>

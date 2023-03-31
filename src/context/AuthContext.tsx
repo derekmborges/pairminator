@@ -51,16 +51,35 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
     const loadProject = async (id: string) => {
         const project = await handleGetProject(id)
         if (project) {
+            // console.log('existing project:', project)
+            // Check if they have an old-formatted project
+            // to convert to the new user-id based project
+            // const oldProject = await (await handleSearchProjects(project.name)).find(p => p.id !== id)
+            // if (oldProject) {
+            //     console.log('found old project:', oldProject)
+                
+            //     const updatedProject: Project = {
+            //         ...oldProject,
+            //         id: project.id
+            //     }
+            //     console.log('updating new project to:', updatedProject)
+            //     await handleUpdateProject(updatedProject)
+            //     setCurrentProject(updatedProject)
+            // } else {
+            //     setCurrentProject(project)
+            // }
             setCurrentProject(project)
         }
     }
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(changedUser => {
-            console.log('auth changed:', changedUser)
+            setAuthenticating(true)
+            // console.log('auth changed:', changedUser)
             if (changedUser) {
                 loadProject(changedUser.uid)
             }
+            setAuthenticating(false)
         })
         return unsubscribe
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,9 +90,7 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
         let error = null
 
         try {
-            // const result = await signInWithEmailAndPassword(auth, getProjectEmail(name), password)
             await signInWithEmailAndPassword(auth, getProjectEmail(name), password)
-            // await loadProject(result.user.uid)
         } catch (e) {
             console.error('Error authenticating project:', e)
             error = `Project name/password is invalid`
@@ -87,23 +104,6 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
         await signOut(auth)
         setCurrentProject(null)
     }
-
-    const isLoggedIn = async () => {
-        setAuthenticating(true)
-        const user = auth.currentUser
-        console.log('checking if logged in:', user)
-        if (user) {
-            await loadProject(user.uid)
-        }
-        setAuthenticating(false)
-    }
-
-    // useEffect(() => {
-    //     async function check() {
-    //         await isLoggedIn()
-    //     }
-    //     check()
-    // }, [])
 
     const contextValue: AuthContextT = {
         authenticating,
