@@ -48,6 +48,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     useEffect(() => {
         if (!project && currentProject) {
             setProject(currentProject)
+        } else if (project && !currentProject) {
+            setProject(null)
         }
     }, [currentProject, project])
     
