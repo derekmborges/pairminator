@@ -321,7 +321,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             }
             setProject({
                 ...project,
-                recordedPairsHistory: [...project.recordedPairsHistory, recordedPairs]
+                recordedPairsHistory: [...project.recordedPairsHistory, recordedPairs],
+                pairingStatus: PairingState.RECORDED
             })
         }
     }
