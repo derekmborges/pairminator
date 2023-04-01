@@ -11,7 +11,7 @@ import { useAuthContext } from '../context/AuthContext'
 import { LoadingButton } from '@mui/lab'
 
 export const NewProject = (): JSX.Element => {
-    const { currentProject, createProject, projectNameExists } = useAuthContext()
+    const { currentProject, createProject } = useAuthContext()
     const [projectName, setProjectName] = useState<string>('')
     const [creating, setCreating] = useState<boolean>(false)
     const [nameError, setNameError] = useState<string | null>(null)

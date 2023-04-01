@@ -8,7 +8,6 @@ import { FirebaseError } from "firebase/app";
 interface AuthContextT {
     authenticating: boolean
     currentProject: Project | null
-    projectNameExists: (name: string) => Promise<boolean>
     createProject: (name: string, password: string) => Promise<string | null>
     login: (name: string, password: string) => Promise<string | null>
     logout: () => Promise<void>
@@ -29,17 +28,12 @@ interface ProviderProps {
 }
 
 export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
-    const { handleAddProject, handleGetProject, handleSearchProjects } = useDatabaseContext()
+    const { handleAddProject, handleGetProject } = useDatabaseContext()
 
     const [authenticating, setAuthenticating] = useState<boolean>(false)
     const [currentProject, setCurrentProject] = useState<Project | null>(null)
 
     const getProjectEmail = (name: string) => `p_${name.replace(' ', '-')}@pairminator.com`
-
-    const projectNameExists = async (name: string): Promise<boolean> => {
-        const projects = await handleSearchProjects(name)
-        return projects.length > 0
-    }
 
     const createProject = async (name: string, password: string): Promise<string | null> => {
         console.log('creating account')
@@ -127,7 +121,6 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
     const contextValue: AuthContextT = {
         authenticating,
         currentProject,
-        projectNameExists,
         createProject,
         login,
         logout,
