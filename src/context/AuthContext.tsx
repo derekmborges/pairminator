@@ -30,7 +30,7 @@ interface ProviderProps {
 export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
     const { handleAddProject, handleGetProject } = useDatabaseContext()
 
-    const [authenticating, setAuthenticating] = useState<boolean>(false)
+    const [authenticating, setAuthenticating] = useState<boolean>(true)
     const [currentProject, setCurrentProject] = useState<Project | null>(null)
 
     const getProjectEmail = (name: string) => `p_${name.replace(' ', '-')}@pairminator.com`
