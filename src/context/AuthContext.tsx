@@ -1,14 +1,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Project } from "../models/interface";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from 'firebase/auth'
 import { auth } from "../firebase";
 import { useDatabaseContext } from "./DatabaseContext";
+import { FirebaseError } from "firebase/app";
 
 interface AuthContextT {
     authenticating: boolean
     currentProject: Project | null
     projectNameExists: (name: string) => Promise<boolean>
-    createProject: (name: string, password: string) => Promise<void>
+    createProject: (name: string, password: string) => Promise<string | null>
     login: (name: string, password: string) => Promise<string | null>
     logout: () => Promise<void>
 }
@@ -40,16 +41,30 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
         return projects.length > 0
     }
 
-    const createProject = async (name: string, password: string) => {
-        const createdCredential = await createUserWithEmailAndPassword(auth, getProjectEmail(name), password)
-
-        const projectId = createdCredential.user.uid
-        const project = await handleAddProject(projectId, name)
-        setCurrentProject(project)
+    const createProject = async (name: string, password: string): Promise<string | null> => {
+        console.log('creating account')
+        let error = null
+        try {
+            const userCred = await createUserWithEmailAndPassword(auth, getProjectEmail(name), password)
+            console.log('account created')
+            await updateProfile(userCred.user, { displayName: name })
+            console.log('user displayName updated')
+            await login(name, password)
+        } catch (e) {
+            const firebaseError: FirebaseError = e as FirebaseError
+            console.error('Error authenticating project:', firebaseError)
+            console.log(firebaseError.code)
+            if (firebaseError.code === 'auth/email-already-in-use') {
+                error = 'Project name is not available'
+            } else {
+                error = `Error creating project: ${firebaseError.code}`
+            }
+        }
+        return error
     }
 
-    const loadProject = async (id: string) => {
-        const project = await handleGetProject(id)
+    const loadProject = async (user: User) => {
+        const project = await handleGetProject(user.uid)
         if (project) {
             // console.log('existing project:', project)
             // Check if they have an old-formatted project
@@ -69,21 +84,12 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
             //     setCurrentProject(project)
             // }
             setCurrentProject(project)
+        } else {
+            console.log('creating project')
+            const newProject = await handleAddProject(user.uid, user.displayName || user.uid)
+            setCurrentProject(newProject)
         }
     }
-
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(changedUser => {
-            setAuthenticating(true)
-            // console.log('auth changed:', changedUser)
-            if (changedUser) {
-                loadProject(changedUser.uid)
-            }
-            setAuthenticating(false)
-        })
-        return unsubscribe
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
 
     const login = async (name: string, password: string): Promise<string | null> => {
         setAuthenticating(true)
@@ -104,6 +110,19 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
         await signOut(auth)
         setCurrentProject(null)
     }
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(changedUser => {
+            setAuthenticating(true)
+            // console.log('auth changed:', changedUser)
+            if (changedUser && !currentProject) {
+                loadProject(changedUser)
+            }
+            setAuthenticating(false)
+        })
+        return unsubscribe
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const contextValue: AuthContextT = {
         authenticating,

@@ -29,21 +29,17 @@ export const NewProject = (): JSX.Element => {
         setNameError(null)
 
         const invalidChar = projectName.match(/[@(),]/)
-        console.log(invalidChar)
         if (invalidChar) {
             setNameError(`Project name contains an invalid character: "${invalidChar}"`)
             setCreating(false)
             return
         }
 
-        const nameExists = await projectNameExists(projectName)
-        if (nameExists) {
-            setNameError('Project name is taken, try another one.')
+        const error = await createProject(projectName, projectPassword)
+        if (error) {
+            setNameError(error)
             setCreating(false)
-            return
         }
-
-        await createProject(projectName, projectPassword)
     }
 
     const onEnter = (e: React.KeyboardEvent) => {
