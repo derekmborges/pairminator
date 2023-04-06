@@ -1,5 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "@firebase/firestore";
 import { FirebaseError } from "firebase/app";
+import { orderBy } from "firebase/firestore";
 import { createContext, useContext } from "react";
 import { database } from "../firebase";
 import { laneConverter, pairConverter, paireeConverter, projectConverter } from "../lib/converter";
@@ -14,7 +15,7 @@ interface DatabaseContextT {
     handleAddPairee: (projectId: string, name: string) => Promise<boolean>
     handleUpdatePairee: (projectId: string, pairee: Pairee) => Promise<boolean>
     handleDeletePairee: (projectId: string, paireeId: string) => Promise<boolean>
-    handleAddLane: (projectId: string, name: string, number: number) => Promise<boolean>
+    handleUpdateLanes: (projectId: string, lanesNeeded: number) => Promise<boolean>
     handleSetCurrentPairs: (projectId: string, pairs: Pair[] | null) => Promise<boolean>
 }
 
@@ -92,19 +93,38 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     }
 
-    const handleAddLane = async (projectId: string, name: string, number: number): Promise<boolean> => {
+    const handleUpdateLanes = async (projectId: string, lanesNeeded: number): Promise<boolean> => {
         try {
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
-            const laneRef = await addDoc(collection(projectRef, COLLECTION_LANES), {})
-            const newLane: Lane = {
-                id: laneRef.id,
-                name,
-                number
+
+            // Get existing lanes
+            const lanesSnapshot = await getDocs(query(collection(projectRef, COLLECTION_LANES), orderBy("number")).withConverter(laneConverter))
+            const existingLanes = lanesSnapshot.size
+
+            if (lanesNeeded > existingLanes) {
+                // Add missing lanes
+                for (let i = existingLanes+1; i <= lanesNeeded; i++) {
+                    const laneRef = await addDoc(collection(projectRef, COLLECTION_LANES), {})
+                    const newLane: Lane = {
+                        id: laneRef.id,
+                        name: `Lane ${i}`,
+                        number: i
+                    }
+                    await setDoc(laneRef.withConverter(laneConverter), newLane)
+                }
+            } else if (lanesNeeded < existingLanes) {
+                // Delete extra lanes
+                for (let i = existingLanes-1; i >= lanesNeeded; i--) {
+                    const laneRef = lanesSnapshot.docs.at(i)?.ref
+                    if (laneRef) {
+                        await deleteDoc(laneRef)
+                    }
+                }
             }
-            await setDoc(laneRef.withConverter(laneConverter), newLane)
+
             return true
         } catch (e) {
-            console.error('Error adding lane:', e)
+            console.error('Error updating lanes:', e)
             return false
         }
     }
@@ -158,7 +178,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         handleAddPairee,
         handleUpdatePairee,
         handleDeletePairee,
-        handleAddLane,
+        handleUpdateLanes,
         handleSetCurrentPairs
     }
 

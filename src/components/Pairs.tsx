@@ -16,6 +16,7 @@ import Alert from '@mui/material/Alert'
 export const Pairs = (): JSX.Element => {
   const {
     project,
+    pairees,
     togglePaireeAvailability,
     assignPairs,
     resetCurrentPairs,
@@ -29,8 +30,7 @@ export const Pairs = (): JSX.Element => {
     setPairsRecorded(true)
   }
 
-  const pairees = project?.pairees || []
-  const availablePairees = project?.pairees?.filter(p => p.available) || []
+  const availablePairees = pairees?.filter(p => p.available) || []
   const pairingState = project?.pairingStatus
   const currentPairs = project?.currentPairs || []
 
@@ -49,7 +49,7 @@ export const Pairs = (): JSX.Element => {
           <Typography component="h2" variant="h6">
             Who's available to Pair? (select to toggle)
           </Typography>
-          {!!pairees.length ? (
+          {pairees && !!pairees.length ? (
             <Grid2 container px={0} pt={1} spacing={1}>
               {pairees.map((pairee: Pairee) => (
                 <Grid2 key={pairee.id}>

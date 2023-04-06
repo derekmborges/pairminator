@@ -8,6 +8,9 @@ service cloud.firestore {
       match /pairees/{document=**} {
         allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
       }
+      match /lanes/{document=**} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }
