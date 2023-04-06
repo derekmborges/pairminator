@@ -10,7 +10,7 @@ import { Pairee } from '../../models/interface'
 type Props = {
     open: boolean
     pairee: Pairee
-    handleClose: (id?: number) => void
+    handleClose: (id?: string) => void
 }
 
 export const PaireeDeleteModal = ({

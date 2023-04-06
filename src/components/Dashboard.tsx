@@ -7,14 +7,14 @@ import { useNavigate } from 'react-router'
 import { useAuthContext } from '../context/AuthContext'
 
 export const Dashboard = (): JSX.Element => {
-    const { authenticating, currentProject } = useAuthContext()
+    const { authenticating, currentProjectId } = useAuthContext()
     const navigate = useNavigate()
 
     useEffect(() => {
-        if (!authenticating && !currentProject) {
+        if (!authenticating && !currentProjectId) {
             navigate({ pathname: '/' })
         }
-    }, [authenticating, currentProject, navigate])
+    }, [authenticating, currentProjectId, navigate])
 
     return (
         <>

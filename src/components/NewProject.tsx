@@ -11,7 +11,7 @@ import { useAuthContext } from '../context/AuthContext'
 import { LoadingButton } from '@mui/lab'
 
 export const NewProject = (): JSX.Element => {
-    const { currentProject, createProject } = useAuthContext()
+    const { currentProjectId, createProject } = useAuthContext()
     const [projectName, setProjectName] = useState<string>('')
     const [creating, setCreating] = useState<boolean>(false)
     const [nameError, setNameError] = useState<string | null>(null)
@@ -19,10 +19,10 @@ export const NewProject = (): JSX.Element => {
     const navigate = useNavigate()
 
     useEffect(() => {
-        if (currentProject) {
+        if (currentProjectId) {
           navigate({ pathname: '/dashboard' })
         }
-    }, [currentProject, navigate])
+    }, [currentProjectId, navigate])
 
     const create = async () => {
         setCreating(true)

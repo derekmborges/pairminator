@@ -30,7 +30,7 @@ export const Pairs = (): JSX.Element => {
   }
 
   const pairees = project?.pairees || []
-  const availablePairees = project?.availablePairees || []
+  const availablePairees = project?.pairees?.filter(p => p.available) || []
   const pairingState = project?.pairingStatus
   const currentPairs = project?.currentPairs || []
 
@@ -58,7 +58,7 @@ export const Pairs = (): JSX.Element => {
                     label={pairee.name}
                     variant={availablePairees.some(p => p.id === pairee.id) ? 'filled' : 'outlined'}
                     color={availablePairees.some(p => p.id === pairee.id) ? 'info' : 'default'}
-                    onClick={() => togglePaireeAvailability(pairee)}
+                    onClick={async () => await togglePaireeAvailability(pairee)}
                   />
                 </Grid2>
               ))}

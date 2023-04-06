@@ -19,14 +19,14 @@ export const History = (): JSX.Element => {
         Pair History
       </Typography>
 
-      {project && !project.recordedPairsHistory.length && (
+      {project?.recordedPairsHistory && !project.recordedPairsHistory.length && (
         <Typography variant='body1' fontStyle='italic'>
           Record pairs to see a recent history.
         </Typography>
       )}
 
       <Stack spacing={2}>
-        {project?.recordedPairsHistory
+        {project?.recordedPairsHistory && project?.recordedPairsHistory
           .sort((a, b) => b.date.valueOf() - a.date.valueOf())
           .map((recordedPairs: RecordedPairs) => (
             <Box key={recordedPairs.date.valueOf()}>

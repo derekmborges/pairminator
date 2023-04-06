@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAnalytics } from 'firebase/analytics'
-import { getFirestore } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import { getAuth, connectAuthEmulator } from 'firebase/auth'
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -22,3 +22,7 @@ const app = initializeApp(firebaseConfig);
 export const analytics = getAnalytics(app);
 export const database = getFirestore(app);
 export const auth = getAuth(app);
+if (process.env.NODE_ENV === "development") {
+    connectFirestoreEmulator(database, 'localhost', 8080)
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+}
