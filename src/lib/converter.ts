@@ -71,18 +71,19 @@ export const laneConverter = {
 export const pairConverter = {
     toFirestore: (pair: Pair) => {
         return {
-            lane: pair.lane,
-            pairee1: pair.pairee1,
-            pairee2: pair.pairee2 || null
+            laneId: pair.laneId,
+            pairee1Id: pair.pairee1Id,
+            pairee2Id: pair.pairee2Id || null
         }
     },
     fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
         const data = snapshot.data(options)
         if (data) {
             return {
-                lane: data.lane,
-                pairee1: data.pairee1,
-                pairee2: data.pairee2 || undefined
+                id: data.id,
+                laneId: data.laneId,
+                pairee1Id: data.pairee1Id,
+                pairee2Id: data.pairee2Id || undefined
             } as Pair
         }
     }

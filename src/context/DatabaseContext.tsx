@@ -11,7 +11,7 @@ import { Lane, Pair, Pairee, Project } from "../models/interface";
 interface DatabaseContextT {
     handleAddProject: (id: string, name: string) => Promise<Project>
     handleGetProject: (projectId: string) => Promise<Project | undefined>
-    handleUpdateProject: (project: Project) => void
+    handleUpdateProject: (project: Project) => Promise<boolean>
     handleAddPairee: (projectId: string, name: string) => Promise<boolean>
     handleUpdatePairee: (projectId: string, pairee: Pairee) => Promise<boolean>
     handleDeletePairee: (projectId: string, paireeId: string) => Promise<boolean>
@@ -161,14 +161,15 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         return projectDoc.data()
     }
 
-    const handleUpdateProject = async (project: Project) => {
-        const projectRef = doc(database, COLLECTION_PROJECTS, project.id)
-        const projectUpdates: Project = {
-            id: project.id,
-            name: project.name,
-            pairingStatus: project.pairingStatus
+    const handleUpdateProject = async (project: Project): Promise<boolean> => {
+        try {
+            const projectRef = doc(database, COLLECTION_PROJECTS, project.id)
+            await setDoc(projectRef, {...project})
+            return true
+        } catch (e) {
+            console.error('Error updating project:', e)
+            return false
         }
-        await setDoc(projectRef, projectUpdates)
     }
 
     const contextValue: DatabaseContextT = {

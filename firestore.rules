@@ -11,6 +11,9 @@ service cloud.firestore {
       match /lanes/{document=**} {
         allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
       }
+      match /currentPairs/{document=**} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }

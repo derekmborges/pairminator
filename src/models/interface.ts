@@ -14,10 +14,9 @@ export interface Lane {
 }
 
 export interface Pair {
-    // id: string
-    pairee1: Pairee // should just be ID
-    pairee2?: Pairee // should just be ID
-    lane: Lane
+    pairee1Id: string
+    pairee2Id?: string
+    laneId: string
 }
 
 export interface RecordedPairs {
@@ -30,8 +29,6 @@ export interface Project {
     id: string
     name: string
     pairingStatus: PairingState
-    // pairees?: Pairee[]
-    // lanes?: Lane[]
     recordedPairsHistory?: RecordedPairs[]
-    currentPairs?: Pair[]
+    // currentPairs?: Pair[]
 }

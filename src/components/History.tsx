@@ -7,7 +7,7 @@ import { usePairminatorContext } from '../context/PairminatorContext'
 import { RecordedPairs, Pair } from '../models/interface'
 
 export const History = (): JSX.Element => {
-  const { project } = usePairminatorContext()
+  const { project, lanes, pairees } = usePairminatorContext()
 
   return (
     <Paper
@@ -33,18 +33,23 @@ export const History = (): JSX.Element => {
               <Typography variant='h6'>
                 {recordedPairs.date.toLocaleString()}
               </Typography>
-              {recordedPairs.pairs.map((pair: Pair) => (
-                <Stack direction='row' key={pair.lane.id}>
-                  <Typography variant='body1'>
-                    {pair.pairee1.name}
-                  </Typography>
-                  {pair.pairee2 && (
+              {recordedPairs.pairs.map((pair: Pair) => {
+                const lane = lanes?.find(l => l.id === pair.laneId)
+                const pairee1 = pairees?.find(p => p.id === pair.pairee1Id)
+                const pairee2 = pair.pairee2Id ? pairees?.find(p => p.id === pair.pairee2Id) : null
+                return lane && pairee1 && (
+                  <Stack direction='row' key={lane.id}>
                     <Typography variant='body1'>
-                      &nbsp;&&nbsp;{pair.pairee2.name}
+                      {pairee1.name}
                     </Typography>
-                  )}
-                </Stack>
-              ))}
+                    {pairee2 && (
+                      <Typography variant='body1'>
+                        &nbsp;&&nbsp;{pairee2.name}
+                      </Typography>
+                    )}
+                  </Stack>
+                )
+              })}
             </Box>
           ))
         }

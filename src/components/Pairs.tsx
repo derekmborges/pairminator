@@ -17,6 +17,8 @@ export const Pairs = (): JSX.Element => {
   const {
     project,
     pairees,
+    lanes,
+    currentPairs,
     togglePaireeAvailability,
     assignPairs,
     resetCurrentPairs,
@@ -32,7 +34,6 @@ export const Pairs = (): JSX.Element => {
 
   const availablePairees = pairees?.filter(p => p.available) || []
   const pairingState = project?.pairingStatus
-  const currentPairs = project?.currentPairs || []
 
   return (
     <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
@@ -75,32 +76,38 @@ export const Pairs = (): JSX.Element => {
       )}
       {pairingState && [PairingState.ASSIGNED, PairingState.RECORDED].includes(pairingState) && currentPairs && (
         <Grid2 container px={0} spacing={2}>
-          {currentPairs.map((pair: Pair, index: number) => (
-            <Grid2 key={pair.lane.id}>
-              <Stack direction='column' alignItems='center' spacing={1}
-                borderRight={index < (currentPairs.length-1) ? '2px dashed grey' : 'none'}
-                pr={2}
-              >
-                <Typography variant='subtitle1'>
-                  {pair.lane.name}
-                </Typography>
-                <Chip
-                  size='medium'
-                  label={pair.pairee1.name}
-                  variant='filled'
-                  color={pairingState === PairingState.RECORDED ? 'primary' : 'secondary'}
-                />
-                {pair.pairee2 && (
+          {currentPairs.map((pair: Pair, index: number) => {
+            const lane = lanes?.find(l => l.id === pair.laneId)
+            const pairee1 = pairees?.find(p => p.id === pair.pairee1Id)
+            const pairee2 = pair.pairee2Id ? pairees?.find(p => p.id === pair.pairee2Id) : null
+
+            return lane && pairee1 && (
+              <Grid2 key={lane.id}>
+                <Stack direction='column' alignItems='center' spacing={1}
+                  borderRight={index < (currentPairs.length-1) ? '2px dashed grey' : 'none'}
+                  pr={2}
+                >
+                  <Typography variant='subtitle1'>
+                    {lane.name}
+                  </Typography>
                   <Chip
                     size='medium'
-                    label={pair.pairee2.name}
+                    label={pairee1.name}
                     variant='filled'
                     color={pairingState === PairingState.RECORDED ? 'primary' : 'secondary'}
                   />
-                )}
-              </Stack>
-            </Grid2>
-          ))}
+                  {pairee2 && (
+                    <Chip
+                      size='medium'
+                      label={pairee2.name}
+                      variant='filled'
+                      color={pairingState === PairingState.RECORDED ? 'primary' : 'secondary'}
+                    />
+                  )}
+                </Stack>
+              </Grid2>
+            )
+          })}
         </Grid2>
       )}
 
