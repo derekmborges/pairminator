@@ -3,7 +3,7 @@ import { RecordedPairs, Lane, Pair, Pairee, Project } from "../models/interface"
 import { PairingState } from "../models/enum"
 import { COLLECTION_CURRENT_PAIRS, COLLECTION_HISTORY, COLLECTION_LANES, COLLECTION_PAIREES, COLLECTION_PROJECTS, useDatabaseContext } from "./DatabaseContext"
 import { useAuthContext } from "./AuthContext"
-import { collection, DocumentSnapshot, onSnapshot, orderBy, QueryDocumentSnapshot, QuerySnapshot } from "@firebase/firestore"
+import { collection, DocumentSnapshot, onSnapshot, orderBy, QueryDocumentSnapshot, QuerySnapshot, where } from "@firebase/firestore"
 import { doc, query } from "firebase/firestore"
 import { database } from "../firebase"
 import { laneConverter, pairConverter, paireeConverter, projectConverter, recordedPairsConverter } from "../lib/converter"
@@ -42,7 +42,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const { currentProjectId } = useAuthContext()
     const {
         handleAddPairee,
-        handleDeletePairee,
+        handleDeactivatePairee,
         handleUpdatePairee,
         handleUpdateLanes,
         handleUpdateProject,
@@ -79,7 +79,11 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         if (project) {
             console.log('watching pairee subcollection')
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
-            const paireesQuery = query(collection(projectRef, COLLECTION_PAIREES), orderBy("name")).withConverter(paireeConverter)
+            const paireesQuery = query(
+                collection(projectRef, COLLECTION_PAIREES),
+                where("active", "==", true),
+                orderBy("name")
+            ).withConverter(paireeConverter)
             const unsub = onSnapshot(paireesQuery, (querySnapshot: QuerySnapshot<Pairee | undefined>) => {
                 console.log('pairees updated')
                 let pairees: Pairee[] = []
@@ -229,7 +233,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     const deletePairee = async (id: string): Promise<boolean> => {
         if (project) {
-            return await handleDeletePairee(project.id, id)
+            return await handleDeactivatePairee(project.id, id)
         }
         return false
     }

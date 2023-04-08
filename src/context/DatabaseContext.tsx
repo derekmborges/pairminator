@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from "@firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc } from "@firebase/firestore";
 import { getDoc, orderBy } from "firebase/firestore";
 import { createContext, useContext } from "react";
 import { database } from "../firebase";
@@ -13,7 +13,7 @@ interface DatabaseContextT {
     handleUpdateProject: (project: Project) => Promise<boolean>
     handleAddPairee: (projectId: string, name: string) => Promise<boolean>
     handleUpdatePairee: (projectId: string, pairee: Pairee) => Promise<boolean>
-    handleDeletePairee: (projectId: string, paireeId: string) => Promise<boolean>
+    handleDeactivatePairee: (projectId: string, paireeId: string) => Promise<boolean>
     handleUpdateLanes: (projectId: string, lanesNeeded: number) => Promise<boolean>
     handleSetCurrentPairs: (projectId: string, pairs: Pair[] | null) => Promise<boolean>
     handleRecordPairs: (projectId: string, currentPairs: Pair[]) => Promise<boolean>
@@ -83,13 +83,20 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     }
 
-    const handleDeletePairee = async (projectId: string, paireeId: string): Promise<boolean> => {
+    const handleDeactivatePairee = async (projectId: string, paireeId: string): Promise<boolean> => {
         try {
-            const paireeRef = doc(database, COLLECTION_PROJECTS, projectId, COLLECTION_PAIREES, paireeId)
-            await deleteDoc(paireeRef)
-            return true
+            const paireeDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId, COLLECTION_PAIREES, paireeId).withConverter(paireeConverter))
+            const pairee = paireeDoc.data()
+            if (pairee) {
+                await updateDoc(paireeDoc.ref, {
+                    ...pairee,
+                    active: false,
+                })
+                return true
+            }
+            return false
         } catch (e) {
-            console.error('Error deleting pairee:', e)
+            console.error('Error deactivate pairee:', e)
             return false
         }
     }
@@ -192,7 +199,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         handleUpdateProject,
         handleAddPairee,
         handleUpdatePairee,
-        handleDeletePairee,
+        handleDeactivatePairee,
         handleUpdateLanes,
         handleSetCurrentPairs,
         handleRecordPairs,
