@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { Project } from "../models/interface";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from 'firebase/auth'
 import { auth } from "../firebase";
 import { useDatabaseContext } from "./DatabaseContext";

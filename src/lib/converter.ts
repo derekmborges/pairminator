@@ -17,10 +17,6 @@ export const projectConverter = {
                 id: data.id,
                 name: data.name,
                 pairingStatus: data.pairingStatus
-                // recordedPairsHistory: data.recordedPairsHistory.map((h: any) => ({
-                //     ...h,
-                //     date: h.date.toDate()
-                // } as RecordedPairs)),
             } as Project
         }
     }
@@ -68,12 +64,41 @@ export const laneConverter = {
     }
 }
 
+const transformDataToPair = (data: any): Pair => {
+    return {
+        id: data.id,
+        laneId: data.laneId,
+        pairee1Id: data.pairee1Id,
+        pairee2Id: data.pairee2Id || undefined
+    } as Pair
+}
+
+const transformPairToData = (pair: Pair): any => {
+    return {
+        laneId: pair.laneId,
+        pairee1Id: pair.pairee1Id,
+        pairee2Id: pair.pairee2Id || null
+    }
+}
+
 export const pairConverter = {
     toFirestore: (pair: Pair) => {
+        return transformPairToData(pair)
+    },
+    fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
+        const data = snapshot.data(options)
+        if (data) {
+            return transformDataToPair(data)
+        }
+    }
+}
+
+export const recordedPairsConverter = {
+    toFirestore: (recordedPairs: RecordedPairs) => {
         return {
-            laneId: pair.laneId,
-            pairee1Id: pair.pairee1Id,
-            pairee2Id: pair.pairee2Id || null
+            id: recordedPairs.id,
+            pairs: recordedPairs.pairs.map(pair => transformPairToData(pair)),
+            date: recordedPairs.date,
         }
     },
     fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
@@ -81,10 +106,9 @@ export const pairConverter = {
         if (data) {
             return {
                 id: data.id,
-                laneId: data.laneId,
-                pairee1Id: data.pairee1Id,
-                pairee2Id: data.pairee2Id || undefined
-            } as Pair
+                pairs: data.pairs.map((pair: any) => transformDataToPair(pair)),
+                date: data.date.toDate()
+            } as RecordedPairs
         }
     }
 }

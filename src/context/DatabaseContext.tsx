@@ -1,11 +1,10 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "@firebase/firestore";
-import { FirebaseError } from "firebase/app";
-import { orderBy } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from "@firebase/firestore";
+import { getDoc, orderBy } from "firebase/firestore";
 import { createContext, useContext } from "react";
 import { database } from "../firebase";
-import { laneConverter, pairConverter, paireeConverter, projectConverter } from "../lib/converter";
+import { laneConverter, pairConverter, paireeConverter, projectConverter, recordedPairsConverter } from "../lib/converter";
 import { PairingState } from "../models/enum";
-import { Lane, Pair, Pairee, Project } from "../models/interface";
+import { Lane, Pair, Pairee, Project, RecordedPairs } from "../models/interface";
 
 
 interface DatabaseContextT {
@@ -17,6 +16,7 @@ interface DatabaseContextT {
     handleDeletePairee: (projectId: string, paireeId: string) => Promise<boolean>
     handleUpdateLanes: (projectId: string, lanesNeeded: number) => Promise<boolean>
     handleSetCurrentPairs: (projectId: string, pairs: Pair[] | null) => Promise<boolean>
+    handleRecordPairs: (projectId: string, currentPairs: Pair[]) => Promise<boolean>
 }
 
 export const DatabaseContext = createContext<DatabaseContextT | undefined>(undefined);
@@ -37,6 +37,7 @@ export const COLLECTION_PROJECTS = 'projects'
 export const COLLECTION_PAIREES = 'pairees'
 export const COLLECTION_LANES = 'lanes'
 export const COLLECTION_CURRENT_PAIRS = 'currentPairs'
+export const COLLECTION_HISTORY = 'history'
 
 export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
 
@@ -133,21 +134,13 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         try {
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
             if (pairs) {
-                console.log('setting current pairs')
                 for (let pair of pairs) {
                     await addDoc(collection(projectRef, COLLECTION_CURRENT_PAIRS), pair)
                 }
             } else {
-                console.log('resetting current pairs')
                 const currentPairsQuery = query(collection(projectRef, COLLECTION_CURRENT_PAIRS)).withConverter(pairConverter)
                 const snapshot = await getDocs(currentPairsQuery)
                 snapshot.forEach(async (result) => await deleteDoc(result.ref))
-                // let existingPairIds: string[] = []
-                // snapshot.forEach((result) => existingPairIds.push(result.id))
-                // for (let pairId of existingPairIds) {
-                //     const pairDoc = await getDoc(doc(projectRef, COLLECTION_CURRENT_PAIRS, pairId))
-                //     await deleteDoc(pairDoc.ref)
-                // }
             }
             return true
         } catch (e) {
@@ -157,8 +150,12 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
     }
 
     const handleGetProject = async (projectId: string): Promise<Project | undefined> => {
-        const projectDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId).withConverter(projectConverter))
-        return projectDoc.data()
+        try {
+            const projectDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId).withConverter(projectConverter))
+            return projectDoc.data()
+        } catch (e) {
+            console.error('Error looking up project:', e)
+        }
     }
 
     const handleUpdateProject = async (project: Project): Promise<boolean> => {
@@ -172,6 +169,23 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     }
 
+    const handleRecordPairs = async (projectId: string, currentPairs: Pair[]): Promise<boolean> => {
+        try {
+            const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
+            const recordedPairsRef = await addDoc(collection(projectRef, COLLECTION_HISTORY), {})
+            const newRecordedPairs: RecordedPairs = {
+                id: recordedPairsRef.id,
+                pairs: currentPairs,
+                date: new Date()
+            }
+            await setDoc(recordedPairsRef.withConverter(recordedPairsConverter), newRecordedPairs)
+            return true
+        } catch (e) {
+            console.error('Error recording current pairs:', e)
+            return false
+        }
+    }
+
     const contextValue: DatabaseContextT = {
         handleAddProject,
         handleGetProject,
@@ -180,7 +194,8 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         handleUpdatePairee,
         handleDeletePairee,
         handleUpdateLanes,
-        handleSetCurrentPairs
+        handleSetCurrentPairs,
+        handleRecordPairs,
     }
 
     return (

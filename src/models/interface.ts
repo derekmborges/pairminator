@@ -29,6 +29,4 @@ export interface Project {
     id: string
     name: string
     pairingStatus: PairingState
-    recordedPairsHistory?: RecordedPairs[]
-    // currentPairs?: Pair[]
 }

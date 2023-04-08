@@ -27,9 +27,11 @@ export const Pairs = (): JSX.Element => {
 
   const [pairsRecorded, setPairsRecorded] = useState<boolean>(false)
 
-  const record = () => {
-    recordCurrentPairs()
-    setPairsRecorded(true)
+  const record = async () => {
+    const success = await recordCurrentPairs()
+    if (success) {
+      setPairsRecorded(true)
+    }
   }
 
   const availablePairees = pairees?.filter(p => p.available) || []
@@ -76,38 +78,45 @@ export const Pairs = (): JSX.Element => {
       )}
       {pairingState && [PairingState.ASSIGNED, PairingState.RECORDED].includes(pairingState) && currentPairs && (
         <Grid2 container px={0} spacing={2}>
-          {currentPairs.map((pair: Pair, index: number) => {
-            const lane = lanes?.find(l => l.id === pair.laneId)
-            const pairee1 = pairees?.find(p => p.id === pair.pairee1Id)
-            const pairee2 = pair.pairee2Id ? pairees?.find(p => p.id === pair.pairee2Id) : null
+          {currentPairs
+            .sort((a: Pair, b: Pair) => {
+              const laneA = lanes?.find(l => l.id === a.laneId)
+              const laneB = lanes?.find(l => l.id === b.laneId)
+              return (laneA && laneB) ? laneA.number - laneB.number : 0
+            })
+            .map((pair: Pair, index: number) => {
+              const lane = lanes?.find(l => l.id === pair.laneId)
+              const pairee1 = pairees?.find(p => p.id === pair.pairee1Id)
+              const pairee2 = pair.pairee2Id ? pairees?.find(p => p.id === pair.pairee2Id) : null
 
-            return lane && pairee1 && (
-              <Grid2 key={lane.id}>
-                <Stack direction='column' alignItems='center' spacing={1}
-                  borderRight={index < (currentPairs.length-1) ? '2px dashed grey' : 'none'}
-                  pr={2}
-                >
-                  <Typography variant='subtitle1'>
-                    {lane.name}
-                  </Typography>
-                  <Chip
-                    size='medium'
-                    label={pairee1.name}
-                    variant='filled'
-                    color={pairingState === PairingState.RECORDED ? 'primary' : 'secondary'}
-                  />
-                  {pairee2 && (
+              return lane && pairee1 && (
+                <Grid2 key={lane.id}>
+                  <Stack direction='column' alignItems='center' spacing={1}
+                    borderRight={index < (currentPairs.length-1) ? '2px dashed grey' : 'none'}
+                    pr={2}
+                  >
+                    <Typography variant='subtitle1'>
+                      {lane.name}
+                    </Typography>
                     <Chip
                       size='medium'
-                      label={pairee2.name}
+                      label={pairee1.name}
                       variant='filled'
                       color={pairingState === PairingState.RECORDED ? 'primary' : 'secondary'}
                     />
-                  )}
-                </Stack>
-              </Grid2>
-            )
-          })}
+                    {pairee2 && (
+                      <Chip
+                        size='medium'
+                        label={pairee2.name}
+                        variant='filled'
+                        color={pairingState === PairingState.RECORDED ? 'primary' : 'secondary'}
+                      />
+                    )}
+                  </Stack>
+                </Grid2>
+              )
+            }
+          )}
         </Grid2>
       )}
 
