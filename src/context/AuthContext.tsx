@@ -59,6 +59,8 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
     const loadProject = async (user: User) => {
         const project = await handleGetProject(user.uid)
         if (project) {
+            // TODO: check if project is using old data design
+
             setCurrentProjectId(project.id)
         } else {
             console.log('creating project')
