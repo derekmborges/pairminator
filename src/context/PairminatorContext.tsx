@@ -64,7 +64,9 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         }
     }, [allPairees])
 
+    const [lanesNeeded, setLanesNeeded] = useState<number>(0)
     const [lanes, setLanes] = useState<Lane[] | null>(null)
+
     const [currentPairs, setCurrentPairs] = useState<Pair[] | null>(null)
     const [recordedPairsHistory, setRecordedPairsHistory] = useState<RecordedPairs[] | null>(null)
 
@@ -261,13 +263,19 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         if (project) {
             const availablePairees = activePairees?.filter(p => p.available) || []
             const lanesNeeded: number = Math.ceil(availablePairees.length / 2)
-            const existingLanes = lanes?.length || 0
+            setLanesNeeded(lanesNeeded)
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activePairees])
+
+    useEffect(() => {
+        if (project && lanes) {
+            const existingLanes = lanes.length
             if (existingLanes < lanesNeeded) {
                 handleUpdateLanes(project.id, lanesNeeded)
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activePairees])
+    }, [lanesNeeded, lanes, project, handleUpdateLanes])
 
     interface DatedPairCount {
         count: number
@@ -354,11 +362,11 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                 ...project,
                 pairingStatus: PairingState.ASSIGNING
             })
-    
+
             let pairs: Pair[] = []
             let available: Pairee[] = cloneDeep(activePairees?.filter(p => p.available) || [])
-            let freeLanes: Lane[] = cloneDeep(lanes || [])
-    
+            let freeLanes: Lane[] = cloneDeep(lanes?.slice(0, lanesNeeded) || [])
+
             const isAvailable = (id: string): boolean => available.some(p => p.id === id)
             const addPair = (pairee1: Pairee, pairee2: Pairee | undefined) => {
                 const lane = freeLanes[0]
@@ -410,7 +418,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                     addPair(pairee1, pairee2)
                 }
             }
-    
+
             const assignedSuccess = await handleSetCurrentPairs(project.id, pairs)
             const updateSuccess = await handleUpdateProject({
                 ...project,
