@@ -7,7 +7,7 @@ import { usePairminatorContext } from '../context/PairminatorContext'
 import { RecordedPairs, Pair } from '../models/interface'
 
 export const History = (): JSX.Element => {
-  const { lanes, pairees, recordedPairsHistory } = usePairminatorContext()
+  const { lanes, allPairees, recordedPairsHistory } = usePairminatorContext()
 
   return (
     <Paper
@@ -38,8 +38,8 @@ export const History = (): JSX.Element => {
                 })
                 .map((pair: Pair) => {
                   const lane = lanes?.find(l => l.id === pair.laneId)
-                  const pairee1 = pairees?.find(p => p.id === pair.pairee1Id)
-                  const pairee2 = pair.pairee2Id ? pairees?.find(p => p.id === pair.pairee2Id) : null
+                  const pairee1 = allPairees?.find(p => p.id === pair.pairee1Id)
+                  const pairee2 = pair.pairee2Id ? allPairees?.find(p => p.id === pair.pairee2Id) : null
                   return lane && pairee1 && (
                     <Stack direction='row' key={lane.id} pl={1}>
                       <Typography fontWeight={500} pr={1}>

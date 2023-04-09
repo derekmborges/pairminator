@@ -22,7 +22,7 @@ import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 
 export const Pairees = (): JSX.Element => {
-    const { pairees, addPairee, deletePairee } = usePairminatorContext()
+    const { activePairees, addPairee, deletePairee } = usePairminatorContext()
     const [newPaireeName, setNewPaireeName] = useState<string>('')
     const [newPaireeError, setNewPaireeError] = useState<boolean>(false)
 
@@ -32,7 +32,7 @@ export const Pairees = (): JSX.Element => {
     const add = async () => {
         setNewPaireeError(false)
 
-        const paireeExists: boolean = !!pairees?.find(p => p.name === newPaireeName)
+        const paireeExists: boolean = !!activePairees?.find(p => p.name === newPaireeName)
         if (paireeExists) {
             setNewPaireeError(true)
             return
@@ -108,9 +108,9 @@ export const Pairees = (): JSX.Element => {
                         <Typography component="h2" variant="h6" color="secondary" gutterBottom>
                             Pairees
                         </Typography>
-                        {pairees && pairees.length > 0 ? (
+                        {activePairees && activePairees.length > 0 ? (
                             <List>
-                                {pairees.map((pairee: Pairee) => (
+                                {activePairees.map((pairee: Pairee) => (
                                     <PaireeRow key={pairee.id} pairee={pairee} />
                                 ))}
                             </List>

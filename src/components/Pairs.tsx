@@ -16,7 +16,7 @@ import Alert from '@mui/material/Alert'
 export const Pairs = (): JSX.Element => {
   const {
     project,
-    pairees,
+    activePairees,
     lanes,
     currentPairs,
     togglePaireeAvailability,
@@ -34,7 +34,7 @@ export const Pairs = (): JSX.Element => {
     }
   }
 
-  const availablePairees = pairees?.filter(p => p.available) || []
+  const availablePairees = activePairees?.filter(p => p.available) || []
   const pairingState = project?.pairingStatus
 
   return (
@@ -52,9 +52,9 @@ export const Pairs = (): JSX.Element => {
           <Typography component="h2" variant="h6">
             Who's available to Pair? (select to toggle)
           </Typography>
-          {pairees && !!pairees.length ? (
+          {activePairees && !!activePairees.length ? (
             <Grid2 container px={0} pt={1} spacing={1}>
-              {pairees.map((pairee: Pairee) => (
+              {activePairees.map((pairee: Pairee) => (
                 <Grid2 key={pairee.id}>
                   <Chip
                     size='medium'
@@ -86,8 +86,8 @@ export const Pairs = (): JSX.Element => {
             })
             .map((pair: Pair, index: number) => {
               const lane = lanes?.find(l => l.id === pair.laneId)
-              const pairee1 = pairees?.find(p => p.id === pair.pairee1Id)
-              const pairee2 = pair.pairee2Id ? pairees?.find(p => p.id === pair.pairee2Id) : null
+              const pairee1 = activePairees?.find(p => p.id === pair.pairee1Id)
+              const pairee2 = pair.pairee2Id ? activePairees?.find(p => p.id === pair.pairee2Id) : null
 
               return lane && pairee1 && (
                 <Grid2 key={lane.id}>

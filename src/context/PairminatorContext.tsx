@@ -11,7 +11,8 @@ import { cloneDeep } from "lodash"
 
 export interface PairminatorContextT {
     project: Project | null
-    pairees: Pairee[] | null
+    allPairees: Pairee[] | null
+    activePairees: Pairee[] | null
     lanes: Lane[] | null
     currentPairs: Pair[] | null
     recordedPairsHistory: RecordedPairs[] | null
@@ -53,7 +54,16 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const [project, setProject] = useState<Project | null>(null)
     const [watchData, setWatchData] = useState<boolean>(false)
 
-    const [pairees, setPairees] = useState<Pairee[] | null>(null)
+    const [activePairees, setActivePairees] = useState<Pairee[] | null>(null)
+    const [allPairees, setAllPairees] = useState<Pairee[] | null>(null)
+    useEffect(() => {
+        if (allPairees) {
+            setActivePairees([...allPairees.filter(p => p.active)])
+        } else {
+            setActivePairees(null)
+        }
+    }, [allPairees])
+
     const [lanes, setLanes] = useState<Lane[] | null>(null)
     const [currentPairs, setCurrentPairs] = useState<Pair[] | null>(null)
     const [recordedPairsHistory, setRecordedPairsHistory] = useState<RecordedPairs[] | null>(null)
@@ -81,7 +91,6 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
             const paireesQuery = query(
                 collection(projectRef, COLLECTION_PAIREES),
-                where("active", "==", true),
                 orderBy("name")
             ).withConverter(paireeConverter)
             const unsub = onSnapshot(paireesQuery, (querySnapshot: QuerySnapshot<Pairee | undefined>) => {
@@ -93,7 +102,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                         pairees.push(pairee)
                     }
                 })
-                setPairees([...pairees])
+                setAllPairees([...pairees])
             })
             return () => {
                 console.log('unsubscribing from pairee subcollection')
@@ -186,7 +195,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             setWatchData(false)
             setRecordedPairsHistory(null)
             setCurrentPairs(null)
-            setPairees(null)
+            setAllPairees(null)
             setLanes(null)
             setProject(null)
         }
@@ -275,7 +284,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             const sortedIds: string[] = [p1.id, p2.id].sort()
             return `${sortedIds[0]}-${sortedIds[1]}`
         }
-        const available = pairees?.filter(p => p.available) || []
+        const available = activePairees?.filter(p => p.available) || []
 
         // build map of pair frequencies
         for (let pairee1 of available) {
@@ -347,7 +356,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             })
     
             let pairs: Pair[] = []
-            let available: Pairee[] = cloneDeep(pairees?.filter(p => p.available) || [])
+            let available: Pairee[] = cloneDeep(activePairees?.filter(p => p.available) || [])
             let freeLanes: Lane[] = cloneDeep(lanes || [])
     
             const isAvailable = (id: string): boolean => available.some(p => p.id === id)
@@ -439,7 +448,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     const contextValue: PairminatorContextT = {
         project,
-        pairees,
+        allPairees,
+        activePairees,
         lanes,
         currentPairs,
         recordedPairsHistory,
