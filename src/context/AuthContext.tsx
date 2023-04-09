@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { Project } from "../models/interface";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from 'firebase/auth'
 import { auth } from "../firebase";
 import { useDatabaseContext } from "./DatabaseContext";
@@ -7,7 +6,7 @@ import { FirebaseError } from "firebase/app";
 
 interface AuthContextT {
     authenticating: boolean
-    currentProject: Project | null
+    currentProjectId: string | null
     createProject: (name: string, password: string) => Promise<string | null>
     login: (name: string, password: string) => Promise<string | null>
     logout: () => Promise<void>
@@ -31,7 +30,7 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
     const { handleAddProject, handleGetProject } = useDatabaseContext()
 
     const [authenticating, setAuthenticating] = useState<boolean>(true)
-    const [currentProject, setCurrentProject] = useState<Project | null>(null)
+    const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
 
     const getProjectEmail = (name: string) => `p_${name.replace(' ', '-')}@pairminator.com`
 
@@ -60,28 +59,11 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
     const loadProject = async (user: User) => {
         const project = await handleGetProject(user.uid)
         if (project) {
-            // console.log('existing project:', project)
-            // Check if they have an old-formatted project
-            // to convert to the new user-id based project
-            // const oldProject = await (await handleSearchProjects(project.name)).find(p => p.id !== id)
-            // if (oldProject) {
-            //     console.log('found old project:', oldProject)
-                
-            //     const updatedProject: Project = {
-            //         ...oldProject,
-            //         id: project.id
-            //     }
-            //     console.log('updating new project to:', updatedProject)
-            //     await handleUpdateProject(updatedProject)
-            //     setCurrentProject(updatedProject)
-            // } else {
-            //     setCurrentProject(project)
-            // }
-            setCurrentProject(project)
+            setCurrentProjectId(project.id)
         } else {
             console.log('creating project')
             const newProject = await handleAddProject(user.uid, user.displayName || user.uid)
-            setCurrentProject(newProject)
+            setCurrentProjectId(newProject.id)
         }
     }
 
@@ -102,14 +84,14 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
 
     const logout = async () => {
         await signOut(auth)
-        setCurrentProject(null)
+        setCurrentProjectId(null)
     }
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(changedUser => {
             setAuthenticating(true)
             // console.log('auth changed:', changedUser)
-            if (changedUser && !currentProject) {
+            if (changedUser && !currentProjectId) {
                 loadProject(changedUser)
             }
             setAuthenticating(false)
@@ -120,7 +102,7 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
 
     const contextValue: AuthContextT = {
         authenticating,
-        currentProject,
+        currentProjectId,
         createProject,
         login,
         logout,

@@ -22,31 +22,35 @@ import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 
 export const Pairees = (): JSX.Element => {
-    const { project, addPairee, deletePairee } = usePairminatorContext()
+    const { activePairees, addPairee, deletePairee } = usePairminatorContext()
     const [newPaireeName, setNewPaireeName] = useState<string>('')
     const [newPaireeError, setNewPaireeError] = useState<boolean>(false)
 
     const [paireeAdded, setPaireeAdded] = useState<boolean>(false)
     const [paireeDeleted, setPaireeDeleted] = useState<boolean>(false)
 
-    const add = () => {
+    const add = async () => {
         setNewPaireeError(false)
 
-        const paireeExists: boolean = !!project?.pairees.find(p => p.name === newPaireeName)
+        const paireeExists: boolean = !!activePairees?.find(p => p.name === newPaireeName)
         if (paireeExists) {
             setNewPaireeError(true)
             return
         }
 
-        addPairee(newPaireeName);
+        const addSuccess = await addPairee(newPaireeName);
+        if (addSuccess) {
+            setPaireeAdded(true)
+        }
         setNewPaireeName('');
-        setPaireeAdded(true)
     }
 
-    const handleCloseDeleteModal = (id?: number) => {
+    const handleCloseDeleteModal = async (id?: string) => {
         if (id) {
-            deletePairee(id)
-            setPaireeDeleted(true)
+            const success = await deletePairee(id)
+            if (success) {
+                setPaireeDeleted(true)
+            }
         }
     }
 
@@ -104,9 +108,9 @@ export const Pairees = (): JSX.Element => {
                         <Typography component="h2" variant="h6" color="secondary" gutterBottom>
                             Pairees
                         </Typography>
-                        {project && project.pairees.length > 0 ? (
+                        {activePairees && activePairees.length > 0 ? (
                             <List>
-                                {project.pairees.map((pairee: Pairee) => (
+                                {activePairees.map((pairee: Pairee) => (
                                     <PaireeRow key={pairee.id} pairee={pairee} />
                                 ))}
                             </List>

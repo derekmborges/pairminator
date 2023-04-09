@@ -11,17 +11,17 @@ import pearImg from '../images/pear.png'
 import { useAuthContext } from '../context/AuthContext'
 
 export const ProjectLogin = (): JSX.Element => {
-  const { authenticating, currentProject, login } = useAuthContext()
+  const { authenticating, currentProjectId, login } = useAuthContext()
   const [projectName, setProjectName] = useState<string>('')
   const [projectPassword, setProjectPassword] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (currentProject) {
+    if (currentProjectId) {
       navigate({ pathname: '/dashboard' })
     }
-  }, [currentProject, navigate])
+  }, [currentProjectId, navigate])
 
   const submitLogin = async() => {
     setError(null)

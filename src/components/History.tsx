@@ -7,7 +7,7 @@ import { usePairminatorContext } from '../context/PairminatorContext'
 import { RecordedPairs, Pair } from '../models/interface'
 
 export const History = (): JSX.Element => {
-  const { project } = usePairminatorContext()
+  const { lanes, allPairees, recordedPairsHistory } = usePairminatorContext()
 
   return (
     <Paper
@@ -19,36 +19,50 @@ export const History = (): JSX.Element => {
         Pair History
       </Typography>
 
-      {project && !project.recordedPairsHistory.length && (
+      {(!recordedPairsHistory || !recordedPairsHistory.length) ? (
         <Typography variant='body1' fontStyle='italic'>
           Record pairs to see a recent history.
         </Typography>
-      )}
-
-      <Stack spacing={2}>
-        {project?.recordedPairsHistory
-          .sort((a, b) => b.date.valueOf() - a.date.valueOf())
-          .map((recordedPairs: RecordedPairs) => (
+      ) : (
+        <Stack spacing={2}>
+          {recordedPairsHistory.map((recordedPairs: RecordedPairs) => (
             <Box key={recordedPairs.date.valueOf()}>
               <Typography variant='h6'>
                 {recordedPairs.date.toLocaleString()}
               </Typography>
-              {recordedPairs.pairs.map((pair: Pair) => (
-                <Stack direction='row' key={pair.lane.id}>
-                  <Typography variant='body1'>
-                    {pair.pairee1.name}
-                  </Typography>
-                  {pair.pairee2 && (
-                    <Typography variant='body1'>
-                      &nbsp;&&nbsp;{pair.pairee2.name}
-                    </Typography>
-                  )}
-                </Stack>
-              ))}
+              {recordedPairs.pairs
+                .sort((a: Pair, b: Pair) => {
+                  const laneA = lanes?.find(l => l.id === a.laneId)
+                  const laneB = lanes?.find(l => l.id === b.laneId)
+                  return (laneA && laneB) ? laneA.number - laneB.number : 0
+                })
+                .map((pair: Pair) => {
+                  const lane = lanes?.find(l => l.id === pair.laneId)
+                  const pairee1 = allPairees?.find(p => p.id === pair.pairee1Id)
+                  const pairee2 = pair.pairee2Id ? allPairees?.find(p => p.id === pair.pairee2Id) : null
+                  return lane && pairee1 && (
+                    <Stack direction='row' key={lane.id} pl={1}>
+                      <Typography fontWeight={500} pr={1}>
+                        {lane.number}:
+                      </Typography>
+                      <Typography variant='body1'>
+                        {pairee1.name}
+                      </Typography>
+                      {pairee2 && (
+                        <Typography variant='body1'>
+                          &nbsp;&&nbsp;{pairee2.name}
+                        </Typography>
+                      )}
+                    </Stack>
+                  )
+                }
+              )}
             </Box>
-          ))
-        }
-      </Stack>
+            ))
+          }
+        </Stack>
+      )}
+
     </Paper>
   )
 }

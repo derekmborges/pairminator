@@ -4,6 +4,19 @@ service cloud.firestore {
     match /projects/{userId} {
       allow create: if request.auth != null;
       allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+
+      match /pairees/{document=**} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      match /lanes/{document=**} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      match /currentPairs/{document=**} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      match /history/{document=**} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }

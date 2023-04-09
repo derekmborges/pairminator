@@ -1,25 +1,28 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { RecordedPairs, Lane, Pair, Pairee, Project } from "../models/interface"
-import { cloneDeep, isEqual } from 'lodash'
 import { PairingState } from "../models/enum"
-import { useDatabaseContext } from "./DatabaseContext"
+import { COLLECTION_CURRENT_PAIRS, COLLECTION_HISTORY, COLLECTION_LANES, COLLECTION_PAIREES, COLLECTION_PROJECTS, useDatabaseContext } from "./DatabaseContext"
 import { useAuthContext } from "./AuthContext"
-
-const getNextId = (ids: number[]): number => {
-    return ids.length > 0
-        ? Math.max(...ids) + 1
-        : 1
-}
+import { collection, DocumentSnapshot, onSnapshot, orderBy, QueryDocumentSnapshot, QuerySnapshot, where } from "@firebase/firestore"
+import { doc, query } from "firebase/firestore"
+import { database } from "../firebase"
+import { laneConverter, pairConverter, paireeConverter, projectConverter, recordedPairsConverter } from "../lib/converter"
+import { cloneDeep } from "lodash"
 
 export interface PairminatorContextT {
     project: Project | null
-    addPairee: (name: string) => void
-    updatePairee: (id: number, updatedName: string) => void
-    deletePairee: (id: number) => void
-    togglePaireeAvailability: (pairee: Pairee) => void
-    assignPairs: () => void
-    resetCurrentPairs: () => void
-    recordCurrentPairs: () => void
+    allPairees: Pairee[] | null
+    activePairees: Pairee[] | null
+    lanes: Lane[] | null
+    currentPairs: Pair[] | null
+    recordedPairsHistory: RecordedPairs[] | null
+    addPairee: (name: string) => Promise<boolean>
+    updatePairee: (updatedPairee: Pairee) => Promise<boolean>
+    deletePairee: (id: string) => Promise<boolean>
+    togglePaireeAvailability: (pairee: Pairee) => Promise<boolean>
+    assignPairs: () => Promise<boolean>
+    resetCurrentPairs: () => Promise<boolean>
+    recordCurrentPairs: () => Promise<boolean>
 }
 
 export const PairminatorContext = createContext<PairminatorContextT | undefined>(undefined)
@@ -36,121 +39,235 @@ interface Props {
     children: React.ReactNode
 }
 
-export const LOCAL_STORAGE_PROJECT_KEY = 'pairminatorActiveProjectId'
-
 export const PairminatorProvider: React.FC<Props> = ({ children }) => {
-    const { currentProject } = useAuthContext()
+    const { currentProjectId } = useAuthContext()
+    const {
+        handleAddPairee,
+        handleDeactivatePairee,
+        handleUpdatePairee,
+        handleUpdateLanes,
+        handleUpdateProject,
+        handleSetCurrentPairs,
+        handleRecordPairs,
+    } = useDatabaseContext()
 
-    /* BEGIN PROJECT */
     const [project, setProject] = useState<Project | null>(null)
-    const { handleGetProject, handleUpdateProject } = useDatabaseContext()
+    const [watchData, setWatchData] = useState<boolean>(false)
+
+    const [activePairees, setActivePairees] = useState<Pairee[] | null>(null)
+    const [allPairees, setAllPairees] = useState<Pairee[] | null>(null)
+    useEffect(() => {
+        if (allPairees) {
+            setActivePairees([...allPairees.filter(p => p.active)])
+        } else {
+            setActivePairees(null)
+        }
+    }, [allPairees])
+
+    const [lanes, setLanes] = useState<Lane[] | null>(null)
+    const [currentPairs, setCurrentPairs] = useState<Pair[] | null>(null)
+    const [recordedPairsHistory, setRecordedPairsHistory] = useState<RecordedPairs[] | null>(null)
+
+    const subscribeProjectData = (projectId: string) => {
+        console.log('watching project document')
+        const unsub = onSnapshot(
+            doc(database, COLLECTION_PROJECTS, projectId)
+                .withConverter(projectConverter),
+            (doc: DocumentSnapshot<Project | undefined>) => {
+            const project = doc.data()
+            if (project) {
+                setProject(project)
+            }
+        });
+        return () => {
+            console.log('unsubscribing from project document')
+            unsub();
+        }
+    }
+
+    const subscribePairees = (projectId: string) => {
+        if (project) {
+            console.log('watching pairee subcollection')
+            const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
+            const paireesQuery = query(
+                collection(projectRef, COLLECTION_PAIREES),
+                orderBy("name")
+            ).withConverter(paireeConverter)
+            const unsub = onSnapshot(paireesQuery, (querySnapshot: QuerySnapshot<Pairee | undefined>) => {
+                console.log('pairees updated')
+                let pairees: Pairee[] = []
+                querySnapshot.forEach((result: QueryDocumentSnapshot<Pairee | undefined>) => {
+                    const pairee = result.data()
+                    if (pairee) {
+                        pairees.push(pairee)
+                    }
+                })
+                setAllPairees([...pairees])
+            })
+            return () => {
+                console.log('unsubscribing from pairee subcollection')
+                unsub()
+            }
+        }
+    }
+
+    const subscribeLanes = (projectId: string) => {
+        if (project) {
+            console.log('watching lane subcollection')
+            const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
+            const lanesQuery = query(collection(projectRef, COLLECTION_LANES), orderBy("number")).withConverter(laneConverter)
+            const unsub = onSnapshot(lanesQuery, (querySnapshot: QuerySnapshot<Lane | undefined>) => {
+                console.log('lanes updated')
+                let lanes: Lane[] = []
+                querySnapshot.forEach((result: QueryDocumentSnapshot<Lane | undefined>) => {
+                    const lane = result.data()
+                    if (lane) {
+                        lanes.push(lane)
+                    }
+                })
+                setLanes([...lanes])
+            })
+            return () => {
+                console.log('unsubscribing from lane subcollection')
+                unsub()
+            }
+        }
+    }
+
+    const subscribeCurrentPairs = (projectId: string) => {
+        if (project) {
+            console.log('watching currentPairs subcollection')
+            const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
+            const currentPairsQuery = query(collection(projectRef, COLLECTION_CURRENT_PAIRS)).withConverter(pairConverter)
+            const unsub = onSnapshot(currentPairsQuery, (querySnapshot: QuerySnapshot<Pair | undefined>) => {
+                console.log('current pairs updated')
+                let currentPairs: Pair[] = []
+                if (querySnapshot.empty) {
+                    setCurrentPairs(null)
+                } else {
+                    querySnapshot.forEach((result: QueryDocumentSnapshot<Pair | undefined>) => {
+                        const pair = result.data()
+                        if (pair) {
+                            currentPairs.push(pair)
+                        }
+                    })
+                    setCurrentPairs(currentPairs)
+                }
+            })
+            return () => {
+                console.log('unsubscribing from currentPairs subcollections')
+                unsub()
+            }
+        }
+    }
+
+    const subscribePairHistory = (projectId: string) => {
+        if (project) {
+            console.log('watching history subcollection')
+            const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
+            const historyQuery = query(
+                collection(projectRef, COLLECTION_HISTORY),
+                orderBy("date", "desc")
+            ).withConverter(recordedPairsConverter)
+            const unsub = onSnapshot(historyQuery, (querySnapshot: QuerySnapshot<RecordedPairs | undefined>) => {
+                console.log('history updated')
+                let recordedPairsHistory: RecordedPairs[] = []
+                querySnapshot.forEach((result: QueryDocumentSnapshot<RecordedPairs | undefined>) => {
+                    const recordedPairs = result.data()
+                    if (recordedPairs) {
+                        recordedPairsHistory.push(recordedPairs)
+                    }
+                })
+                setRecordedPairsHistory(recordedPairsHistory)
+            })
+            return () => {
+                console.log('unsubscribing from history subcollection')
+                unsub()
+            }
+        }
+    }
 
     useEffect(() => {
-        if (!project && currentProject) {
-            setProject(currentProject)
-        } else if (project && !currentProject) {
+        if (currentProjectId) {
+            const unsub = subscribeProjectData(currentProjectId)
+            return unsub
+        } else {
+            setWatchData(false)
+            setRecordedPairsHistory(null)
+            setCurrentPairs(null)
+            setAllPairees(null)
+            setLanes(null)
             setProject(null)
         }
-    }, [currentProject, project])
-    
-    const addPairee = (name: string) => {
-        if (project) {
-            const newPairee: Pairee = {
-                id: getNextId(project.pairees.map(p => p.id)),
-                name,
-            }
-
-            setProject({
-                ...project,
-                pairees: [...project.pairees, newPairee],
-                availablePairees: [...project.availablePairees, newPairee]
-            })
-        }
-    }
-
-    const updatePairee = (id: number, updatedName: string) => {
-        if (project) {
-            const paireesCopy: Pairee[] = cloneDeep(project.pairees)
-            const availablePaireesCopy: Pairee[] = cloneDeep(project.availablePairees)
-
-            const paireeIndex = paireesCopy.findIndex(p => p.id === id)
-            if (paireeIndex !== -1) {
-                paireesCopy[paireeIndex].name = updatedName
-            }
-    
-            const availablePaireeIndex = availablePaireesCopy.findIndex(p => p.id === id)
-            if (availablePaireeIndex !== -1) {
-                availablePaireesCopy[availablePaireeIndex].name = updatedName
-            }
-
-            setProject({
-                ...project,
-                pairees: [...paireesCopy],
-                availablePairees: [...availablePaireesCopy]
-            })
-        }
-    }
-
-    const deletePairee = (id: number) => {
-        if (project) {
-            const paireesCopy: Pairee[] = cloneDeep(project.pairees)
-            const availablePaireesCopy: Pairee[] = cloneDeep(project.availablePairees)
-
-            const paireeIndex = paireesCopy.findIndex(p => p.id === id)
-            if (paireeIndex !== -1) {
-                paireesCopy.splice(paireeIndex, 1)
-            }
-    
-            const availablePaireeIndex = availablePaireesCopy.findIndex(p => p.id === id)
-            if (availablePaireeIndex !== -1) {
-                availablePaireesCopy.splice(availablePaireeIndex, 1)
-            }
-
-            setProject({
-                ...project,
-                pairees: [...paireesCopy],
-                availablePairees: [...availablePaireesCopy]
-            })
-        }
-    }
-
-    const togglePaireeAvailability = (pairee: Pairee) => {
-        if (project) {
-            const availableCopy: Pairee[] = cloneDeep(project.availablePairees)
-            const currentlyAvailable: boolean = availableCopy.some(p => p.id === pairee.id)
-            if (currentlyAvailable) {
-                const index: number = availableCopy.findIndex(p => p.id === pairee.id)
-                availableCopy.splice(index, 1)
-            } else {
-                availableCopy.push(pairee)
-            }
-
-            setProject({
-                ...project,
-                availablePairees: [...availableCopy]
-            })
-        }
-    }
+    }, [currentProjectId])
 
     useEffect(() => {
-        if (project) {
-            const lanesNeeded: number = Math.ceil(project.availablePairees.length / 2)
-            if (lanesNeeded !== project.lanes.length) {
-                let lanes: Lane[] = []
-                for (let i=0; i < lanesNeeded; i++) {
-                    const lane: Lane = {
-                        id: getNextId(lanes.map(l => l.id)),
-                        name: `Lane ${i+1}`
+        if (project && !watchData) {
+            setWatchData(true)
+        }
+    }, [project, watchData])
+
+    useEffect(() => {
+        if (watchData && project) {
+            const unsubs = [
+                subscribePairees(project.id),
+                subscribeLanes(project.id),
+                subscribeCurrentPairs(project.id),
+                subscribePairHistory(project.id),
+            ]
+            return () => {
+                unsubs.forEach(unsub => {
+                    if (unsub) {
+                        unsub()
                     }
-                    lanes.push(lane)
-                }
-                setProject({
-                    ...project,
-                    lanes
                 })
             }
         }
-    }, [project])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchData])
+
+    const addPairee = async (name: string): Promise<boolean> => {
+        if (project) {
+            return await handleAddPairee(project.id, name)
+        }
+        return false
+    }
+
+    const updatePairee = async (updatedPairee: Pairee): Promise<boolean> => {
+        if (project) {
+            return await handleUpdatePairee(project.id, updatedPairee)
+        }
+        return false
+    }
+
+    const deletePairee = async (id: string): Promise<boolean> => {
+        if (project) {
+            return await handleDeactivatePairee(project.id, id)
+        }
+        return false
+    }
+
+    const togglePaireeAvailability = async (pairee: Pairee): Promise<boolean> => {
+        if (project) {
+            return await handleUpdatePairee(project.id, {
+                ...pairee,
+                available: !pairee.available
+            })
+        }
+        return false
+    }
+
+    useEffect(() => {
+        if (project) {
+            const availablePairees = activePairees?.filter(p => p.available) || []
+            const lanesNeeded: number = Math.ceil(availablePairees.length / 2)
+            const existingLanes = lanes?.length || 0
+            if (existingLanes < lanesNeeded) {
+                handleUpdateLanes(project.id, lanesNeeded)
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activePairees])
 
     interface DatedPairCount {
         count: number
@@ -162,24 +279,23 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     // Sorted by solo frequency, pair frequency, and pair recency
     const getAvailablePairHistoryMap = (): Map<string, DatedPairCount> => {
         const pairMap: Map<string, DatedPairCount> = new Map()
-        const soloCounts: Map<number, number> = new Map()
+        const soloCounts: Map<string, number> = new Map()
         const getPairString = (p1: Pairee, p2: Pairee): string => {
-            const firstId = Math.min(p1.id, p2.id)
-            const secondId = p1.id === firstId ? p2.id : p1.id
-            return `${firstId}-${secondId}`
+            const sortedIds: string[] = [p1.id, p2.id].sort()
+            return `${sortedIds[0]}-${sortedIds[1]}`
         }
-        const sortedAvailable = project?.availablePairees.sort((a, b) => a.id - b.id) || []
+        const available = activePairees?.filter(p => p.available) || []
 
         // build map of pair frequencies
-        for (let pairee1 of sortedAvailable) {
-            for (let pairee2 of sortedAvailable) {
+        for (let pairee1 of available) {
+            for (let pairee2 of available) {
                 if (pairee1.id !== pairee2.id) {
                     const pairString = getPairString(pairee1, pairee2)
                     if (!pairMap.has(pairString)) {
-                        const pairHistory = project?.recordedPairsHistory.filter(h =>
+                        const pairHistory = recordedPairsHistory?.filter(h =>
                             h.pairs.some(p =>
-                                (p.pairee1.id === pairee1.id && p.pairee2?.id === pairee2.id) ||
-                                (p.pairee1.id === pairee2.id && p.pairee2?.id === pairee1.id)
+                                (p.pairee1Id === pairee1.id && p.pairee2Id === pairee2.id) ||
+                                (p.pairee1Id === pairee2.id && p.pairee2Id === pairee1.id)
                             )
                         ) || []
                         pairMap.set(
@@ -195,15 +311,15 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         }
 
         // build map of solo frequencies
-        for (let pairee of sortedAvailable) {
-            const soloHistory = project?.recordedPairsHistory.filter(h =>
-                h.pairs.some(p => p.pairee1.id === pairee.id && !p.pairee2)
+        for (let pairee of available) {
+            const soloHistory = recordedPairsHistory?.filter(h =>
+                h.pairs.some(p => p.pairee1Id === pairee.id && !p.pairee2Id)
             ) || []
             soloCounts.set(pairee.id, soloHistory.length)
         }
         console.log('solos:', soloCounts)
 
-        const getPaireeIdFromKey = (key: string, i: number): number => parseInt(key.split('-')[i])
+        const getPaireeIdFromKey = (key: string, i: number): string => key.split('-')[i]
         return new Map(
             [...pairMap]
                 .sort((a, b) => {
@@ -222,36 +338,36 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                         }
 
                         // Lastly, sort by solo frequency
-                        const soloFreqA1 = (soloCounts.get(getPaireeIdFromKey(a[0], 0)) || 0)
-                        const soloFreqA2 = (soloCounts.get(getPaireeIdFromKey(a[0], 1)) || 0)
-                        const soloFreqB1 = (soloCounts.get(getPaireeIdFromKey(b[0], 0)) || 0)
-                        const soloFreqB2 = (soloCounts.get(getPaireeIdFromKey(b[0], 1)) || 0)
+                        const soloFreqA1 = soloCounts.get(getPaireeIdFromKey(a[0], 0)) || 0
+                        const soloFreqA2 = soloCounts.get(getPaireeIdFromKey(a[0], 1)) || 0
+                        const soloFreqB1 = soloCounts.get(getPaireeIdFromKey(b[0], 0)) || 0
+                        const soloFreqB2 = soloCounts.get(getPaireeIdFromKey(b[0], 1)) || 0
                         return Math.min(soloFreqB1, soloFreqB2) - Math.min(soloFreqA1, soloFreqA2)
                     }
                 })
         )
     }
 
-    const assignPairs = () => {
+    const assignPairs = async (): Promise<boolean> => {
         if (project) {
-            setProject({
+            await handleUpdateProject({
                 ...project,
                 pairingStatus: PairingState.ASSIGNING
             })
     
             let pairs: Pair[] = []
-            let available: Pairee[] = cloneDeep(project.availablePairees)
-            let freeLanes: Lane[] = cloneDeep(project.lanes)
+            let available: Pairee[] = cloneDeep(activePairees?.filter(p => p.available) || [])
+            let freeLanes: Lane[] = cloneDeep(lanes || [])
     
-            const isAvailable = (id: number): boolean => available.some(p => p.id === id)
+            const isAvailable = (id: string): boolean => available.some(p => p.id === id)
             const addPair = (pairee1: Pairee, pairee2: Pairee | undefined) => {
                 const lane = freeLanes[0]
     
                 console.log('assignment:', pairee1.name, '+', pairee2?.name || 'solo')
                 const pair: Pair = {
-                    pairee1,
-                    ...(pairee2 && {pairee2}),
-                    lane
+                    pairee1Id: pairee1.id,
+                    ...(pairee2 && {pairee2Id: pairee2.id}),
+                    laneId: lane.id
                 }
                 pairs.push(pair)
     
@@ -275,7 +391,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                     // loop over and prioritize the least-paired entries first
                     for (let pairString of sortedPairHistoryMap.keys()) {
                         // Get pairee IDs
-                        const paireeIds = pairString.split('-').map(value => parseInt(value))
+                        const paireeIds = pairString.split('-')
     
                         // If either aren't available to pair, move on
                         if (paireeIds.some(id => !isAvailable(id))) {
@@ -295,65 +411,48 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                 }
             }
     
-            setProject({
+            const assignedSuccess = await handleSetCurrentPairs(project.id, pairs)
+            const updateSuccess = await handleUpdateProject({
                 ...project,
-                currentPairs: [...pairs],
                 pairingStatus: PairingState.ASSIGNED
             })
+
+            return assignedSuccess && updateSuccess
         }
+        return false
     }
 
-    const resetCurrentPairs = () => {
+    const resetCurrentPairs = async (): Promise<boolean> => {
         if (project) {
-            setProject({
+            const resetSuccess = await handleSetCurrentPairs(project.id, null)
+            const updateSuccess = await handleUpdateProject({
                 ...project,
-                currentPairs: null,
                 pairingStatus: PairingState.INITIAL
             })
+            return resetSuccess && updateSuccess
         }
+        return false
     }
 
-    const recordCurrentPairs = () => {
-        if (project && project.currentPairs) {
-            const recordedPairs: RecordedPairs = {
-                pairs: project.currentPairs,
-                date: new Date()
-            }
-            setProject({
+    const recordCurrentPairs = async (): Promise<boolean> => {
+        if (project && currentPairs) {
+            const recordSuccess = await handleRecordPairs(project.id, currentPairs)
+            const updateSuccess = await handleUpdateProject({
                 ...project,
-                recordedPairsHistory: [...project.recordedPairsHistory, recordedPairs],
                 pairingStatus: PairingState.RECORDED
             })
+            return recordSuccess && updateSuccess
         }
+        return false
     }
 
-    useEffect(() => {
-        async function saveProject() {
-            if (project) {
-                const remoteProject = await handleGetProject(project.id)
-
-                if (remoteProject) {
-                    // check if project has changed
-                    if (isEqual(project.pairees, remoteProject.pairees)
-                        && isEqual(project.availablePairees, remoteProject.availablePairees)
-                        && isEqual(project.pairingStatus, remoteProject.pairingStatus)
-                        && isEqual(project.lanes, remoteProject.lanes)
-                        && isEqual(project.currentPairs, remoteProject.currentPairs)
-                        && isEqual(project.recordedPairsHistory, remoteProject.recordedPairsHistory)) {
-                        return
-                    }
-
-                    console.log('syncing project to DB')
-                    handleUpdateProject(project)
-                }
-            }
-        }
-        saveProject()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [project])
-    
     const contextValue: PairminatorContextT = {
         project,
+        allPairees,
+        activePairees,
+        lanes,
+        currentPairs,
+        recordedPairsHistory,
         addPairee,
         updatePairee,
         deletePairee,

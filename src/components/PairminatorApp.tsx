@@ -12,9 +12,11 @@ import { AppRouter } from "./AppRouter";
 import Stack from "@mui/system/Stack";
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { useAuthContext } from "../context/AuthContext";
+import { usePairminatorContext } from "../context/PairminatorContext";
 
 export const PairminatorApp = (): JSX.Element => {
-  const { currentProject, logout } = useAuthContext()
+  const { logout } = useAuthContext()
+  const { project } = usePairminatorContext()
 
   return (
     <HashRouter>
@@ -39,10 +41,10 @@ export const PairminatorApp = (): JSX.Element => {
                 <GitHubIcon />
               </IconButton>
             </Stack>
-            {currentProject && (
+            {project && (
               <Stack direction='row' spacing={2} alignItems='center'>
                 <Typography>
-                  {currentProject.name}
+                  {project.name}
                 </Typography>
                 <Button
                   variant="text"
