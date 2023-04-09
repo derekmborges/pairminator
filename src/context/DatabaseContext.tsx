@@ -105,7 +105,6 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         try {
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
 
-            // Get existing lanes
             const lanesSnapshot = await getDocs(query(collection(projectRef, COLLECTION_LANES), orderBy("number")).withConverter(laneConverter))
             const existingLanes = lanesSnapshot.size
 
@@ -120,16 +119,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
                     }
                     await setDoc(laneRef.withConverter(laneConverter), newLane)
                 }
-            } else if (lanesNeeded < existingLanes) {
-                // Delete extra lanes
-                for (let i = existingLanes-1; i >= lanesNeeded; i--) {
-                    const laneRef = lanesSnapshot.docs.at(i)?.ref
-                    if (laneRef) {
-                        await deleteDoc(laneRef)
-                    }
-                }
             }
-
             return true
         } catch (e) {
             console.error('Error updating lanes:', e)

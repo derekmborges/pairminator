@@ -250,15 +250,15 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     useEffect(() => {
         if (project) {
-            const availablePairees = pairees?.filter(p => p.available) || []
+            const availablePairees = activePairees?.filter(p => p.available) || []
             const lanesNeeded: number = Math.ceil(availablePairees.length / 2)
             const existingLanes = lanes?.length || 0
-            if (existingLanes !== lanesNeeded) {
+            if (existingLanes < lanesNeeded) {
                 handleUpdateLanes(project.id, lanesNeeded)
             }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pairees])
+    }, [activePairees])
 
     interface DatedPairCount {
         count: number
