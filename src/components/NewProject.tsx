@@ -8,7 +8,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import IconButton from '@mui/material/IconButton'
 import pearImg from '../images/pear.png'
 import { useAuthContext } from '../context/AuthContext'
-import { LoadingButton } from '@mui/lab'
+import LoadingButton from '@mui/lab/LoadingButton'
 
 export const NewProject = (): JSX.Element => {
     const { currentProjectId, createProject } = useAuthContext()
