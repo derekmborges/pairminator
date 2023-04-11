@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/pairminator/static/css/main.ceea8c9a.css",
-    "main.js": "/pairminator/static/js/main.a8fc9bfa.js",
+    "main.js": "/pairminator/static/js/main.68368890.js",
     "static/js/787.cda612ba.chunk.js": "/pairminator/static/js/787.cda612ba.chunk.js",
     "static/media/roboto-all-500-normal.woff": "/pairminator/static/media/roboto-all-500-normal.0ab669b7a0d19b178f57.woff",
     "static/media/roboto-all-700-normal.woff": "/pairminator/static/media/roboto-all-700-normal.a457fde362a540fcadff.woff",
@@ -38,11 +38,11 @@
     "static/media/roboto-greek-ext-700-normal.woff2": "/pairminator/static/media/roboto-greek-ext-700-normal.bd9854c751441ccc1a70.woff2",
     "index.html": "/pairminator/index.html",
     "main.ceea8c9a.css.map": "/pairminator/static/css/main.ceea8c9a.css.map",
-    "main.a8fc9bfa.js.map": "/pairminator/static/js/main.a8fc9bfa.js.map",
+    "main.68368890.js.map": "/pairminator/static/js/main.68368890.js.map",
     "787.cda612ba.chunk.js.map": "/pairminator/static/js/787.cda612ba.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ceea8c9a.css",
-    "static/js/main.a8fc9bfa.js"
+    "static/js/main.68368890.js"
   ]
 }
