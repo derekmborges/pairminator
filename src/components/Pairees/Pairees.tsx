@@ -20,12 +20,13 @@ import { PaireeDeleteModal } from './PaireeDeleteModal'
 import { Theme } from '@mui/material'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
+import LoadingButton from '@mui/lab/LoadingButton'
 
 export const Pairees = (): JSX.Element => {
     const { activePairees, addPairee, deletePairee } = usePairminatorContext()
     const [newPaireeName, setNewPaireeName] = useState<string>('')
     const [newPaireeError, setNewPaireeError] = useState<boolean>(false)
-
+    const [addingPairee, setAddingPairee] = useState<boolean>(false)
     const [paireeAdded, setPaireeAdded] = useState<boolean>(false)
     const [paireeDeleted, setPaireeDeleted] = useState<boolean>(false)
 
@@ -38,10 +39,12 @@ export const Pairees = (): JSX.Element => {
             return
         }
 
+        setAddingPairee(true)
         const addSuccess = await addPairee(newPaireeName);
         if (addSuccess) {
             setPaireeAdded(true)
         }
+        setAddingPairee(false)
         setNewPaireeName('');
     }
 
@@ -135,6 +138,7 @@ export const Pairees = (): JSX.Element => {
                                         add()
                                     }
                                 }}
+                                disabled={addingPairee}
                             />
                         </Box>
                         {newPaireeError && (
@@ -143,13 +147,14 @@ export const Pairees = (): JSX.Element => {
                             </Typography>
                         )}
                         <Box my={2}>
-                            <Button
+                            <LoadingButton
                                 variant='contained'
-                                disabled={newPaireeName.length < 2}
+                                disabled={newPaireeName.length < 2 || addingPairee}
                                 onClick={add}
+                                loading={addingPairee}
                             >
                                 Add Pairee
-                            </Button>
+                            </LoadingButton>
                         </Box>
                     </Grid2>
                 <Snackbar
