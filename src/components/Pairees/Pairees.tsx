@@ -20,9 +20,11 @@ import { Theme } from '@mui/material'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import LoadingButton from '@mui/lab/LoadingButton'
+import { PairingState } from '../../models/enum'
+import Tooltip from '@mui/material/Tooltip'
 
 export const Pairees = (): JSX.Element => {
-    const { activePairees, addPairee, deletePairee } = usePairminatorContext()
+    const { activePairees, project, addPairee, deletePairee } = usePairminatorContext()
     const [newPaireeName, setNewPaireeName] = useState<string>('')
     const [newPaireeError, setNewPaireeError] = useState<boolean>(false)
     const [addingPairee, setAddingPairee] = useState<boolean>(false)
@@ -72,9 +74,23 @@ export const Pairees = (): JSX.Element => {
                             <IconButton onClick={() => setEditing(true)}>
                                 <EditIcon />
                             </IconButton>
-                            <IconButton aria-label="delete" onClick={() => setDeleting(true)}>
-                                <DeleteIcon />
-                            </IconButton>
+                            <Tooltip
+                                title={project?.pairingStatus === PairingState.ASSIGNED
+                                    ? 'Record or Reset pairs to enable deleting pairees'
+                                    : ''
+                                }
+                            >
+                                <IconButton
+                                    aria-label="delete"
+                                    onClick={() => {
+                                        if (project?.pairingStatus !== PairingState.ASSIGNED) {
+                                            setDeleting(true)
+                                        }
+                                    }}
+                                    >
+                                    <DeleteIcon />
+                                </IconButton>
+                            </Tooltip>
                         </>
                         : null
                     }
@@ -96,7 +112,10 @@ export const Pairees = (): JSX.Element => {
                 <PaireeDeleteModal
                     open={deleting}
                     pairee={pairee}
-                    handleClose={handleCloseDeleteModal}
+                    handleClose={(id) => {
+                        handleCloseDeleteModal(id)
+                        setDeleting(false)
+                    }}
                 />
             </>
         )

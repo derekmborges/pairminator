@@ -14,6 +14,7 @@ interface DatabaseContextT {
     handleAddPairee: (projectId: string, name: string) => Promise<boolean>
     handleUpdatePairee: (projectId: string, pairee: Pairee) => Promise<boolean>
     handleDeactivatePairee: (projectId: string, paireeId: string) => Promise<boolean>
+    handleDeletePairee: (projectId: string, paireeId: string) => Promise<boolean>
     handleUpdateLanes: (projectId: string, lanesNeeded: number) => Promise<boolean>
     handleSetCurrentPairs: (projectId: string, pairs: Pair[] | null) => Promise<boolean>
     handleRecordPairs: (projectId: string, currentPairs: Pair[]) => Promise<boolean>
@@ -97,6 +98,21 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
             return false
         } catch (e) {
             console.error('Error deactivate pairee:', e)
+            return false
+        }
+    }
+
+    const handleDeletePairee = async (projectId: string, paireeId: string): Promise<boolean> => {
+        try {
+            const paireeDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId, COLLECTION_PAIREES, paireeId).withConverter(paireeConverter))
+            const pairee = paireeDoc.data()
+            if (pairee) {
+                await deleteDoc(paireeDoc.ref)
+                return true
+            }
+            return false
+        } catch (e) {
+            console.error('Error deleting pairee:', e)
             return false
         }
     }
@@ -190,6 +206,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         handleAddPairee,
         handleUpdatePairee,
         handleDeactivatePairee,
+        handleDeletePairee,
         handleUpdateLanes,
         handleSetCurrentPairs,
         handleRecordPairs,
