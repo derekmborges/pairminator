@@ -18,6 +18,7 @@ export interface PairminatorContextT {
     recordedPairsHistory: RecordedPairs[] | null
     addPairee: (name: string) => Promise<boolean>
     updatePairee: (updatedPairee: Pairee) => Promise<boolean>
+    canHardDeletePairee: (paireeId: string) => Promise<boolean>
     deletePairee: (id: string) => Promise<boolean>
     togglePaireeAvailability: (pairee: Pairee) => Promise<boolean>
     assignPairs: () => Promise<boolean>
@@ -44,6 +45,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const {
         handleAddPairee,
         handleDeactivatePairee,
+        handleDeletePairee,
         handleUpdatePairee,
         handleUpdateLanes,
         handleUpdateProject,
@@ -242,9 +244,27 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         return false
     }
 
+    const canHardDeletePairee = async (paireeId: string): Promise<boolean> => {
+        if (project && recordedPairsHistory) {
+            const existsInHistory = recordedPairsHistory.some(recordedPairs =>
+                recordedPairs.pairs.some(pairs =>
+                    paireeId === pairs.pairee1Id ||
+                    paireeId === pairs.pairee2Id
+                )
+            )
+            return !existsInHistory
+        }
+        return false
+    }
+
     const deletePairee = async (id: string): Promise<boolean> => {
         if (project) {
-            return await handleDeactivatePairee(project.id, id)
+            const canHardDelete = await canHardDeletePairee(id)
+            if (canHardDelete) {
+                return await handleDeletePairee(project.id, id)
+            } else {
+                return await handleDeactivatePairee(project.id, id)
+            }
         }
         return false
     }
@@ -463,6 +483,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         recordedPairsHistory,
         addPairee,
         updatePairee,
+        canHardDeletePairee,
         deletePairee,
         togglePaireeAvailability,
         assignPairs,

@@ -97,7 +97,10 @@ export const Pairees = (): JSX.Element => {
                 <PaireeDeleteModal
                     open={deleting}
                     pairee={pairee}
-                    handleClose={handleCloseDeleteModal}
+                    handleClose={(id) => {
+                        handleCloseDeleteModal(id)
+                        setDeleting(false)
+                    }}
                 />
             </>
         )
