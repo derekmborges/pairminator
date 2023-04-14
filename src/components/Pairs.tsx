@@ -25,13 +25,16 @@ export const Pairs = (): JSX.Element => {
     recordCurrentPairs
   } = usePairminatorContext()
 
+  const [recordingPairs, setRecordingPairs] = useState<boolean>(false)
   const [pairsRecorded, setPairsRecorded] = useState<boolean>(false)
 
   const record = async () => {
+    setRecordingPairs(true)
     const success = await recordCurrentPairs()
     if (success) {
       setPairsRecorded(true)
     }
+    setRecordingPairs(false)
   }
 
   const availablePairees = activePairees?.filter(p => p.available) || []
@@ -147,6 +150,7 @@ export const Pairs = (): JSX.Element => {
             color="secondary"
             variant='contained'
             size='large'
+            disabled={recordingPairs}
             onClick={record}
           >
             Record
