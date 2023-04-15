@@ -1,5 +1,5 @@
 name: Build App on Pull Request
-on:
+'on':
   pull_request:
     types: [opened]
 jobs:
