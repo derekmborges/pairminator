@@ -1,6 +1,6 @@
 import { DocumentSnapshot, SnapshotOptions } from "firebase/firestore";
 import { Lane, Pair, Pairee, Project } from "../models/interface";
-import { RecordedPairs } from '../models/interface'
+import { HistoryRecord } from '../models/interface'
 
 export const projectConverter = {
     toFirestore: (project: Project) => {
@@ -93,12 +93,12 @@ export const pairConverter = {
     }
 }
 
-export const recordedPairsConverter = {
-    toFirestore: (recordedPairs: RecordedPairs) => {
+export const historyRecordConverter = {
+    toFirestore: (historyRecord: HistoryRecord) => {
         return {
-            id: recordedPairs.id,
-            pairs: recordedPairs.pairs.map(pair => transformPairToData(pair)),
-            date: recordedPairs.date,
+            id: historyRecord.id,
+            pairs: historyRecord.pairs.map(pair => transformPairToData(pair)),
+            date: historyRecord.date,
         }
     },
     fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
@@ -108,7 +108,7 @@ export const recordedPairsConverter = {
                 id: data.id,
                 pairs: data.pairs.map((pair: any) => transformDataToPair(pair)),
                 date: data.date.toDate()
-            } as RecordedPairs
+            } as HistoryRecord
         }
     }
 }
