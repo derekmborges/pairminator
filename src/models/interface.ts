@@ -19,7 +19,7 @@ export interface Pair {
     laneId: string
 }
 
-export interface RecordedPairs {
+export interface HistoryRecord {
     id: string
     pairs: Pair[]
     date: Date

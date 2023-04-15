@@ -1,0 +1,13 @@
+name: Build App on Pull Request
+'on':
+  push:
+  pull_request:
+    branches:
+      - masin
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: yarn && yarn build

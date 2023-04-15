@@ -2,9 +2,9 @@ import { addDoc, collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc }
 import { getDoc, orderBy } from "firebase/firestore";
 import { createContext, useContext } from "react";
 import { database } from "../firebase";
-import { laneConverter, pairConverter, paireeConverter, projectConverter, recordedPairsConverter } from "../lib/converter";
+import { laneConverter, pairConverter, paireeConverter, projectConverter, historyRecordConverter } from "../lib/converter";
 import { PairingState } from "../models/enum";
-import { Lane, Pair, Pairee, Project, RecordedPairs } from "../models/interface";
+import { Lane, Pair, Pairee, Project, HistoryRecord } from "../models/interface";
 
 
 interface DatabaseContextT {
@@ -18,6 +18,7 @@ interface DatabaseContextT {
     handleUpdateLanes: (projectId: string, lanesNeeded: number) => Promise<boolean>
     handleSetCurrentPairs: (projectId: string, pairs: Pair[] | null) => Promise<boolean>
     handleRecordPairs: (projectId: string, currentPairs: Pair[]) => Promise<boolean>
+    handleDeleteHistoryRecord: (projectId: string, historyId: string) => Promise<boolean>
 }
 
 export const DatabaseContext = createContext<DatabaseContextT | undefined>(undefined);
@@ -185,16 +186,31 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
     const handleRecordPairs = async (projectId: string, currentPairs: Pair[]): Promise<boolean> => {
         try {
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
-            const recordedPairsRef = await addDoc(collection(projectRef, COLLECTION_HISTORY), {})
-            const newRecordedPairs: RecordedPairs = {
-                id: recordedPairsRef.id,
+            const historyRecordRef = await addDoc(collection(projectRef, COLLECTION_HISTORY), {})
+            const newHistoryRecord: HistoryRecord = {
+                id: historyRecordRef.id,
                 pairs: currentPairs,
-                date: new Date()
+                date: new Date(),
             }
-            await setDoc(recordedPairsRef.withConverter(recordedPairsConverter), newRecordedPairs)
+            await setDoc(historyRecordRef.withConverter(historyRecordConverter), newHistoryRecord)
             return true
         } catch (e) {
             console.error('Error recording current pairs:', e)
+            return false
+        }
+    }
+
+    const handleDeleteHistoryRecord = async (projectId: string, historyId: string): Promise<boolean> => {
+        try {
+            const historyRecordDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId, COLLECTION_HISTORY, historyId).withConverter(historyRecordConverter))
+            const historyRecord = historyRecordDoc.data()
+            if (historyRecord) {
+                await deleteDoc(historyRecordDoc.ref)
+                return true
+            }
+            return false
+        } catch (e) {
+            console.error('Error deleting history doc:', e)
             return false
         }
     }
@@ -210,6 +226,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         handleUpdateLanes,
         handleSetCurrentPairs,
         handleRecordPairs,
+        handleDeleteHistoryRecord,
     }
 
     return (

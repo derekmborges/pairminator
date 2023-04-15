@@ -1,12 +1,12 @@
 import { createContext, useContext, useEffect, useState } from "react"
-import { RecordedPairs, Lane, Pair, Pairee, Project } from "../models/interface"
+import { HistoryRecord, Lane, Pair, Pairee, Project } from "../models/interface"
 import { PairingState } from "../models/enum"
 import { COLLECTION_CURRENT_PAIRS, COLLECTION_HISTORY, COLLECTION_LANES, COLLECTION_PAIREES, COLLECTION_PROJECTS, useDatabaseContext } from "./DatabaseContext"
 import { useAuthContext } from "./AuthContext"
 import { collection, DocumentSnapshot, onSnapshot, orderBy, QueryDocumentSnapshot, QuerySnapshot } from "@firebase/firestore"
 import { doc, query } from "firebase/firestore"
 import { database } from "../firebase"
-import { laneConverter, pairConverter, paireeConverter, projectConverter, recordedPairsConverter } from "../lib/converter"
+import { laneConverter, pairConverter, paireeConverter, projectConverter, historyRecordConverter } from "../lib/converter"
 import { cloneDeep } from "lodash"
 
 export interface PairminatorContextT {
@@ -15,7 +15,7 @@ export interface PairminatorContextT {
     activePairees: Pairee[] | null
     lanes: Lane[] | null
     currentPairs: Pair[] | null
-    recordedPairsHistory: RecordedPairs[] | null
+    history: HistoryRecord[] | null
     addPairee: (name: string) => Promise<boolean>
     updatePairee: (updatedPairee: Pairee) => Promise<boolean>
     canHardDeletePairee: (paireeId: string) => Promise<boolean>
@@ -24,6 +24,7 @@ export interface PairminatorContextT {
     assignPairs: () => Promise<boolean>
     resetCurrentPairs: () => Promise<boolean>
     recordCurrentPairs: () => Promise<boolean>
+    deleteHistoryRecord: (id: string) => Promise<boolean>
 }
 
 export const PairminatorContext = createContext<PairminatorContextT | undefined>(undefined)
@@ -51,6 +52,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         handleUpdateProject,
         handleSetCurrentPairs,
         handleRecordPairs,
+        handleDeleteHistoryRecord,
     } = useDatabaseContext()
 
     const [project, setProject] = useState<Project | null>(null)
@@ -70,7 +72,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     const [lanes, setLanes] = useState<Lane[] | null>(null)
 
     const [currentPairs, setCurrentPairs] = useState<Pair[] | null>(null)
-    const [recordedPairsHistory, setRecordedPairsHistory] = useState<RecordedPairs[] | null>(null)
+    const [history, setHistory] = useState<HistoryRecord[] | null>(null)
 
     const subscribeProjectData = (projectId: string) => {
         console.log('watching project document')
@@ -172,17 +174,17 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             const historyQuery = query(
                 collection(projectRef, COLLECTION_HISTORY),
                 orderBy("date", "desc")
-            ).withConverter(recordedPairsConverter)
-            const unsub = onSnapshot(historyQuery, (querySnapshot: QuerySnapshot<RecordedPairs | undefined>) => {
+            ).withConverter(historyRecordConverter)
+            const unsub = onSnapshot(historyQuery, (querySnapshot: QuerySnapshot<HistoryRecord | undefined>) => {
                 console.log('history updated')
-                let recordedPairsHistory: RecordedPairs[] = []
-                querySnapshot.forEach((result: QueryDocumentSnapshot<RecordedPairs | undefined>) => {
-                    const recordedPairs = result.data()
-                    if (recordedPairs) {
-                        recordedPairsHistory.push(recordedPairs)
+                let history: HistoryRecord[] = []
+                querySnapshot.forEach((result: QueryDocumentSnapshot<HistoryRecord | undefined>) => {
+                    const historyRecord = result.data()
+                    if (historyRecord) {
+                        history.push(historyRecord)
                     }
                 })
-                setRecordedPairsHistory(recordedPairsHistory)
+                setHistory(history)
             })
             return () => {
                 console.log('unsubscribing from history subcollection')
@@ -197,7 +199,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             return unsub
         } else {
             setWatchData(false)
-            setRecordedPairsHistory(null)
+            setHistory(null)
             setCurrentPairs(null)
             setAllPairees(null)
             setLanes(null)
@@ -245,9 +247,9 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
     }
 
     const canHardDeletePairee = async (paireeId: string): Promise<boolean> => {
-        if (project && recordedPairsHistory) {
-            const existsInHistory = recordedPairsHistory.some(recordedPairs =>
-                recordedPairs.pairs.some(pairs =>
+        if (project && history) {
+            const existsInHistory = history.some(historyRecord =>
+                historyRecord.pairs.some(pairs =>
                     paireeId === pairs.pairee1Id ||
                     paireeId === pairs.pairee2Id
                 )
@@ -320,7 +322,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                 if (pairee1.id !== pairee2.id) {
                     const pairString = getPairString(pairee1, pairee2)
                     if (!pairMap.has(pairString)) {
-                        const pairHistory = recordedPairsHistory?.filter(h =>
+                        const pairHistory = history?.filter(h =>
                             h.pairs.some(p =>
                                 (p.pairee1Id === pairee1.id && p.pairee2Id === pairee2.id) ||
                                 (p.pairee1Id === pairee2.id && p.pairee2Id === pairee1.id)
@@ -340,7 +342,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
         // build map of solo frequencies
         for (let pairee of available) {
-            const soloHistory = recordedPairsHistory?.filter(h =>
+            const soloHistory = history?.filter(h =>
                 h.pairs.some(p => p.pairee1Id === pairee.id && !p.pairee2Id)
             ) || []
             soloCounts.set(pairee.id, soloHistory.length)
@@ -474,13 +476,20 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         return false
     }
 
+    const deleteHistoryRecord = async (id: string): Promise<boolean> => {
+        if (project) {
+            return await handleDeleteHistoryRecord(project.id, id)
+        }
+        return false
+    }
+
     const contextValue: PairminatorContextT = {
         project,
         allPairees,
         activePairees,
         lanes,
         currentPairs,
-        recordedPairsHistory,
+        history,
         addPairee,
         updatePairee,
         canHardDeletePairee,
@@ -489,6 +498,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         assignPairs,
         resetCurrentPairs,
         recordCurrentPairs,
+        deleteHistoryRecord,
     }
 
     return (
