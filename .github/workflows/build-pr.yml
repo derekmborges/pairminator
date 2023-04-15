@@ -1,0 +1,10 @@
+name: Build App on Pull Request
+on:
+  pull_request:
+    types: [opened]
+jobs:
+  build:
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: yarn && yarn build
