@@ -1,7 +1,9 @@
 name: Build App on Pull Request
-'on':
+on:
+  push:
   pull_request:
-    types: [opened]
+    branches:
+      - masin
 jobs:
   build:
     steps:
