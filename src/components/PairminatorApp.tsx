@@ -36,6 +36,7 @@ export const PairminatorApp = (): JSX.Element => {
                 noWrap
               >
                 Pairminator
+                {!!process.env.REACT_APP_DATA_SOURCE && ' (LOCAL)'}
               </Typography>
               <IconButton href="https://github.com/derekmborges/pairminator" target="_blank">
                 <GitHubIcon />
