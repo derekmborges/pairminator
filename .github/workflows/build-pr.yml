@@ -1,9 +1,8 @@
 name: Build App on Pull Request
 'on':
-  push:
   pull_request:
     branches:
-      - masin
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
