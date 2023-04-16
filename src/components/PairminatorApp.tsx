@@ -1,21 +1,24 @@
-import React from "react";
-import AppBar from "@mui/material/AppBar";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import { IconButton, Theme } from "@mui/material";
-import Button from "@mui/material/Button";
-import Container from "@mui/system/Container";
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
-import { HashRouter } from "react-router-dom";
-import { AppRouter } from "./AppRouter";
-import Stack from "@mui/system/Stack";
-import GitHubIcon from '@mui/icons-material/GitHub';
-import { useAuthContext } from "../context/AuthContext";
-import { usePairminatorContext } from "../context/PairminatorContext";
+import React from "react"
+import AppBar from "@mui/material/AppBar"
+import Typography from "@mui/material/Typography"
+import Box from "@mui/material/Box"
+import Toolbar from "@mui/material/Toolbar"
+import IconButton from "@mui/material/IconButton"
+import Button from "@mui/material/Button"
+import Container from "@mui/system/Container"
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Stack from "@mui/system/Stack"
+import Snackbar from "@mui/material/Snackbar"
+import Alert from "@mui/material/Alert"
+import GitHubIcon from "@mui/icons-material/GitHub"
+import { Theme } from "@mui/material"
+import { HashRouter } from "react-router-dom"
+import { AppRouter } from "./AppRouter"
+import { useAuthContext } from "../context/AuthContext"
+import { usePairminatorContext } from "../context/PairminatorContext"
 
 export const PairminatorApp = (): JSX.Element => {
-  const { logout } = useAuthContext()
+  const { logout, projectCreated } = useAuthContext()
   const { project } = usePairminatorContext()
 
   return (
@@ -76,8 +79,13 @@ export const PairminatorApp = (): JSX.Element => {
               <AppRouter />
             </Grid2>
           </Container>
+          <Snackbar open={projectCreated}>
+            <Alert severity='success'>
+              Project created! Happy pairing
+            </Alert>
+          </Snackbar>
         </Box>
       </Box>
     </HashRouter>
-  );
-};
+  )
+}

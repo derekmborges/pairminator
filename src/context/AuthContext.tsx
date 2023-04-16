@@ -7,6 +7,7 @@ import { FirebaseError } from "firebase/app";
 interface AuthContextT {
     authenticating: boolean
     currentProjectId: string | null
+    projectCreated: boolean
     createProject: (name: string, password: string) => Promise<string | null>
     login: (name: string, password: string) => Promise<string | null>
     logout: () => Promise<void>
@@ -31,6 +32,7 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
 
     const [authenticating, setAuthenticating] = useState<boolean>(true)
     const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
+    const [projectCreated, setProjectCreated] = useState<boolean>(false)
 
     const getProjectEmail = (name: string) => `p_${name.replace(' ', '-')}@pairminator.com`
 
@@ -56,6 +58,12 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
         return error
     }
 
+    useEffect(() => {
+        if (projectCreated) {
+            setTimeout(() => setProjectCreated(false), 3000)
+        }
+    }, [projectCreated, setProjectCreated])
+
     const loadProject = async (user: User) => {
         const project = await handleGetProject(user.uid)
         if (project) {
@@ -64,6 +72,7 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
             console.log('creating project')
             const newProject = await handleAddProject(user.uid, user.displayName || user.uid)
             setCurrentProjectId(newProject.id)
+            setProjectCreated(true)
         }
     }
 
@@ -103,6 +112,7 @@ export const AuthProvider: React.FC<ProviderProps> = ({ children }) => {
     const contextValue: AuthContextT = {
         authenticating,
         currentProjectId,
+        projectCreated,
         createProject,
         login,
         logout,
