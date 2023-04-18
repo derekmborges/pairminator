@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
+import Grid2 from '@mui/material/Unstable_Grid2'
 import { History } from './History/History'
 import { Pairees } from './Pairees/Pairees'
 import { Pairs } from './Pairs'
