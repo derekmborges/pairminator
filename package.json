@@ -30,10 +30,14 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "eject": "react-scripts eject",
+    "emulators": "firebase emulators:start",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build -u 'github-actions-bot <support+actions@github.com>'",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "cypress run",
+    "kill-ui": "ps augx | grep -v grep | grep \"react-scripts/scripts/start\" | awk '{print $2}' | xargs kill",
+    "kill-emulators": "ps augx | grep -v grep | grep \"firebase emulators:start\" | awk '{print $2}' | xargs kill",
+    "ci": "concurrently -c \"auto\" \"yarn start\" \"yarn emulators\" \"sleep 5 && yarn test; yarn kill-ui; yarn kill-emulators\""
   },
   "eslintConfig": {
     "extends": [
@@ -54,6 +58,8 @@
     ]
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.191"
+    "@types/lodash": "^4.14.191",
+    "concurrently": "^8.0.1",
+    "cypress": "^12.10.0"
   }
 }

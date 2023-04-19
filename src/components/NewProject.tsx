@@ -72,12 +72,16 @@ export const NewProject = (): JSX.Element => {
                     alt="pear gif"
                     width={200}
                 />
-                <Typography variant='h6' pt={3}>
+                <Typography
+                    data-cy="page-header"
+                    variant='h6'
+                    pt={3}
+                >
                     Create a project
                 </Typography>
                 <TextField
+                    data-cy="project-name"
                     fullWidth
-                    id="project-name"
                     placeholder='Project Name (at least 2 chars)'
                     variant='outlined'
                     sx={{ width: 300 }}
@@ -86,8 +90,8 @@ export const NewProject = (): JSX.Element => {
                     onKeyUp={onEnter}
                 />
                 <TextField
+                    data-cy="project-password"
                     fullWidth
-                    id="project-password"
                     type="password"
                     placeholder='Password (at least 6 chars)'
                     variant='outlined'
@@ -102,6 +106,7 @@ export const NewProject = (): JSX.Element => {
                     </Typography>
                 )}
                 <LoadingButton
+                    data-cy="submit"
                     variant="contained"
                     sx={{ width: 300 }}
                     disabled={projectName.length < 2 || projectPassword.length < 6}
