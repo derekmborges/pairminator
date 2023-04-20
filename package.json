@@ -37,7 +37,7 @@
     "test": "cypress run",
     "kill-ui": "ps augx | grep -v grep | grep \"react-scripts/scripts/start\" | awk '{print $2}' | xargs kill",
     "kill-emulators": "ps augx | grep -v grep | grep \"firebase emulators:start\" | awk '{print $2}' | xargs kill",
-    "ci": "concurrently -c \"auto\" \"yarn start\" \"yarn emulators\" \"$PWD/test.sh\""
+    "ci": "concurrently -c \"auto\" \"yarn start\" \"yarn emulators\" \"$PWD/test.sh; yarn kill-ui; yarn kill-emulators\""
   },
   "eslintConfig": {
     "extends": [
