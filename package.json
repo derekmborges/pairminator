@@ -36,7 +36,7 @@
     "deploy": "gh-pages -d build -u 'github-actions-bot <support+actions@github.com>'",
     "test": "cypress run",
     "kill-ui": "ps augx | grep -v grep | grep \"react-scripts/scripts/start\" | awk '{print $2}' | xargs kill",
-    "kill-emulators": "ps augx | grep -v grep | grep \"firebase\" | awk '{print $2}' | xargs kill",
+    "kill-emulators": "ps augx | grep -v grep | grep \"firebase\" | awk '{print $2}' | xargs kill -s QUIT",
     "ci": "concurrently -c \"auto\" \"yarn start &\" \"yarn emulators &\" \"$PWD/test.sh\""
   },
   "eslintConfig": {
