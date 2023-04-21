@@ -31,13 +31,13 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "eject": "react-scripts eject",
-    "emulators": "firebase emulators:start --debug --project pairminator --token \"$FIREBASE_TOKEN\"",
+    "emulators": "firebase login firebase emulators:start --debug --project pairminator --token \"$FIREBASE_TOKEN\"",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build -u 'github-actions-bot <support+actions@github.com>'",
     "test": "cypress run",
+    "test-ci": "firebase emulators:exec --only auth,firestore \"yarn test\"",
     "kill-ui": "ps augx | grep -v grep | grep \"react-scripts/scripts/start\" | awk '{print $2}' | xargs kill",
-    "kill-emulators": "ps augx | grep -v grep | grep \"firebase\" | awk '{print $2}' | xargs kill -s QUIT",
-    "ci": "concurrently -c \"auto\" \"yarn start\" \"yarn emulators\" \"$PWD/test.sh; yarn kill-ui; yarn kill-emulators\""
+    "ci": "concurrently -c \"auto\" \"yarn start\" \"yarn test-ci; yarn kill-ui\""
   },
   "eslintConfig": {
     "extends": [
