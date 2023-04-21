@@ -35,7 +35,7 @@
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build -u 'github-actions-bot <support+actions@github.com>'",
     "test": "cypress run",
-    "test-ci": "firebase emulators:exec --only auth,firestore \"yarn test\"",
+    "test-ci": "firebase emulators:exec --only auth,firestore \"yarn test\" --token \"$FIREBASE_TOKEN\"",
     "kill-ui": "ps augx | grep -v grep | grep \"react-scripts/scripts/start\" | awk '{print $2}' | xargs kill",
     "ci": "concurrently -c \"auto\" \"yarn start\" \"yarn test-ci; yarn kill-ui\""
   },
