@@ -61,6 +61,6 @@
     "@types/lodash": "^4.14.191",
     "concurrently": "^8.0.1",
     "cypress": "^12.10.0",
-    "firebase-tools": "^11.25.2"
+    "firebase-tools": "^11.28.0"
   }
 }
