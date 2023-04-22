@@ -1,7 +1,7 @@
 
 describe('Project Registration', () => {
     beforeEach(() => {
-        cy.visit('http://localhost:3000/pairminator#/new')
+        cy.visit('/new')
     })
 
     it('allows user to create a new project', () => {
