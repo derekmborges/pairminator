@@ -13,7 +13,7 @@ jobs:
         with:
           path: |
             **/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.json') }}
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - name: Deploy
         env:
           GIT_REPO: github.com/derekmborges/pairminator.git
