@@ -102,7 +102,10 @@ export const Pairees = (): JSX.Element => {
                     <ListItemIcon>
                         <PersonIcon />
                     </ListItemIcon>
-                    <ListItemText primary={pairee.name} />
+                    <ListItemText
+                        data-cy="pairee-name"
+                        primary={pairee.name}
+                    />
                 </ListItem>
                 <PaireeEditDialog
                     open={editing}
@@ -147,6 +150,7 @@ export const Pairees = (): JSX.Element => {
                         </Typography>
                         <Box>
                             <TextField
+                                data-cy="new-pairee-name"
                                 id="pairee-name"
                                 placeholder='Name (min. 2 chars)'
                                 value={newPaireeName}
@@ -166,6 +170,7 @@ export const Pairees = (): JSX.Element => {
                         )}
                         <Box my={2}>
                             <LoadingButton
+                                data-cy="add-pairee"
                                 variant='contained'
                                 disabled={newPaireeName.length < 2 || addingPairee}
                                 onClick={add}
@@ -189,7 +194,10 @@ export const Pairees = (): JSX.Element => {
                     autoHideDuration={3000}
                     onClose={() => setPaireeAdded(false)}
                 >
-                    <Alert severity='success'>
+                    <Alert
+                        data-cy="new-pairee-alert"
+                        severity='success'
+                    >
                         Pairee added successfully
                     </Alert>
                 </Snackbar>

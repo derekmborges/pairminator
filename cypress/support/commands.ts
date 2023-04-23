@@ -11,7 +11,13 @@
 //
 //
 // -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
+Cypress.Commands.add('logout', () => {
+    cy.get('[data-cy=sign-out]').click()
+})
+
+Cypress.Commands.add('login', (name, password) => {
+    // TODO: complete
+})
 //
 //
 // -- This is a child command --
