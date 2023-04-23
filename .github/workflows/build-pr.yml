@@ -20,20 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Cache node_modules
+    - name: Cache dependencies
       uses: actions/cache@v3
       with:
         path: |
           **/node_modules
+          **/.cache/Cypress
+          **/.cache/firebase/emulators
         key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
     - name: Install Dependencies
       run: yarn
-    - name: Cache emulators binary
-      uses: actions/cache@v3
-      with:
-        path: |
-          **/.cache/firebase/emulators
-        key: ${{ runner.os }}
+    # - name: Cache emulators binary
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: |
+    #       **/.cache/firebase/emulators
+    #     key: ${{ runner.os }}
     - name: Test
       run: yarn ci
       env:
