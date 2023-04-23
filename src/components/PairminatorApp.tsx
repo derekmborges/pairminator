@@ -47,10 +47,13 @@ export const PairminatorApp = (): JSX.Element => {
             </Stack>
             {project && (
               <Stack direction='row' spacing={2} alignItems='center'>
-                <Typography>
+                <Typography
+                  data-cy="current-project-name"
+                >
                   {project.name}
                 </Typography>
                 <Button
+                  data-cy="sign-out"
                   variant="text"
                   color="inherit"
                   onClick={logout}

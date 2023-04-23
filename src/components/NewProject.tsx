@@ -28,6 +28,7 @@ export const NewProject = (): JSX.Element => {
         setCreating(true)
         setNameError(null)
 
+        // TODO: remove this check since Auth no longer prevents these characters.
         const invalidChar = projectName.match(/[@(),]/)
         if (invalidChar) {
             setNameError(`Project name contains an invalid character: "${invalidChar}"`)
@@ -101,7 +102,11 @@ export const NewProject = (): JSX.Element => {
                     onKeyUp={onEnter}
                 />
                 {nameError && (
-                    <Typography variant='body1' color='red'>
+                    <Typography
+                        data-cy="new-project-error"
+                        variant='body1'
+                        color='red'
+                    >
                         {nameError}
                     </Typography>
                 )}
