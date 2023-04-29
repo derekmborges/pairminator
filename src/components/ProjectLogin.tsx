@@ -95,6 +95,7 @@ export const ProjectLogin = (): JSX.Element => {
         </LoadingButton>
         <Divider sx={{ my: 4 }} />
         <Button
+          data-cy="create-project-button"
           fullWidth
           variant='outlined'
           color='secondary'

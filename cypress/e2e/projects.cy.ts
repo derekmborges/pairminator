@@ -58,7 +58,7 @@ describe('Project Creation - Validation', () => {
         cy.get('[data-cy=current-project-name]').should('have.text', projectName)
         cy.get('[data-cy=sign-out]').click()
 
-        cy.visit('/new')
+        cy.get('[data-cy=create-project-button]').click()
 
         // re-use same project name
         cy.get('[data-cy=project-name]').type(projectName)
