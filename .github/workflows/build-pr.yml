@@ -21,6 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Cache dependencies
+      id: cache-dependencies
       uses: actions/cache@v3
       with:
         path: |
@@ -36,6 +37,9 @@ jobs:
     #     path: |
     #       **/.cache/firebase/emulators
     #     key: ${{ runner.os }}
+    - name: Install Cypress binary
+      run: cypress install
+      if: steps.cache-dependencies.outputs.cache-hit == 'true'
     - name: Test
       run: yarn ci
       env:
