@@ -38,7 +38,7 @@ jobs:
     #       **/.cache/firebase/emulators
     #     key: ${{ runner.os }}
     - name: Install Cypress binary
-      run: cypress install
+      run: npx cypress install
       if: steps.cache-dependencies.outputs.cache-hit == 'true'
     - name: Test
       run: yarn ci
