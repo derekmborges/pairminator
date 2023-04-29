@@ -4,8 +4,7 @@ echo "Waiting for the app to compile..."
 while ! grep "Compiled successfully" start.log;do echo "Still waiting...";sleep 1;done
 
 echo "Starting tests"
-# yarn test-ci
-echo "Testing simulated success"
+yarn test-ci
 
 if [ $? -eq 0 ]
 then
