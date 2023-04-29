@@ -38,7 +38,7 @@
     "test-local": "cypress open",
     "test-ci": "firebase emulators:exec --only auth,firestore \"yarn test\" --token \"$FIREBASE_TOKEN\"",
     "kill-ui": "ps augx | grep -v grep | grep \"react-scripts/scripts/start\" | awk '{print $2}' | xargs kill",
-    "ci": "concurrently -c \"auto\" \"yarn start\" \"$PWD/test.sh\""
+    "ci": "concurrently -c \"auto\" \"rm -f $PWD/start.log; yarn start >> $PWD/start.log\" \"$PWD/test.sh\""
   },
   "eslintConfig": {
     "extends": [
