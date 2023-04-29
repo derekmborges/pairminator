@@ -164,7 +164,11 @@ export const Pairees = (): JSX.Element => {
                             />
                         </Box>
                         {newPaireeError && (
-                            <Typography variant='caption' color='error.main'>
+                            <Typography
+                                data-cy="pairee-add-error"
+                                variant='caption'
+                                color='error.main'
+                            >
                                 Pairee name already exists.
                             </Typography>
                         )}

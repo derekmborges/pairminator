@@ -1,8 +1,12 @@
 import { v4 as uuidv4 } from 'uuid'
 
-describe('Project Creation', () => {
+describe('Project Creation - Success', () => {
     beforeEach(() => {
         cy.visit('/new')
+    })
+
+    afterEach(() => {
+        cy.get('[data-cy=sign-out]').click()
     })
 
     it('allows user to create a new project', () => {
@@ -20,7 +24,12 @@ describe('Project Creation', () => {
         })
 
         cy.get('[data-cy=current-project-name]').should('have.text', projectName)
-        cy.get('[data-cy=sign-out]').click()
+    })
+})
+
+describe('Project Creation - Validation', () => {
+    beforeEach(() => {
+        cy.visit('/new')
     })
 
     it('form submit is disabled when either field is below minimum character requirement', () => {
