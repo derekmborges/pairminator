@@ -30,7 +30,11 @@ export const History = (): JSX.Element => {
       </Typography>
 
       {(!history || !history.length) ? (
-        <Typography variant='body1' fontStyle='italic'>
+        <Typography
+          data-cy="no-history-label"
+          variant='body1'
+          fontStyle='italic'
+        >
           Record pairs to see a recent history.
         </Typography>
       ) : (

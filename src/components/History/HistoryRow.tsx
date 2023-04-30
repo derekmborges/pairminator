@@ -33,6 +33,7 @@ export const HistoryRow = ({
 
     return (
         <Box
+            data-cy="history-record"
             key={historyRecord.date.valueOf()}
             onMouseEnter={() => setHovering(true)}
             onMouseLeave={() => setHovering(false)}
