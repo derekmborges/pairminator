@@ -7,7 +7,7 @@ import { usePairminatorContext } from '../../context/PairminatorContext'
 import { Pairee } from '../../models/interface'
 import IconButton from '@mui/material/IconButton'
 import EditIcon from '@mui/icons-material/Edit'
-import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
+import Grid2 from '@mui/material/Unstable_Grid2'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
@@ -66,6 +66,7 @@ export const Pairees = (): JSX.Element => {
         return (
             <>
                 <ListItem
+                    data-cy={`pairee-row-${pairee.name}`}
                     onMouseEnter={() => setHovering(true)}
                     onMouseLeave={() => setHovering(false)}
                     key={pairee.id}
@@ -81,6 +82,7 @@ export const Pairees = (): JSX.Element => {
                                 }
                             >
                                 <IconButton
+                                    data-cy="pairee-delete-button"
                                     aria-label="delete"
                                     onClick={() => {
                                         if (project?.pairingStatus !== PairingState.ASSIGNED) {
@@ -102,7 +104,10 @@ export const Pairees = (): JSX.Element => {
                     <ListItemIcon>
                         <PersonIcon />
                     </ListItemIcon>
-                    <ListItemText primary={pairee.name} />
+                    <ListItemText
+                        data-cy="pairee-name"
+                        primary={pairee.name}
+                    />
                 </ListItem>
                 <PaireeEditDialog
                     open={editing}
@@ -147,6 +152,7 @@ export const Pairees = (): JSX.Element => {
                         </Typography>
                         <Box>
                             <TextField
+                                data-cy="new-pairee-name"
                                 id="pairee-name"
                                 placeholder='Name (min. 2 chars)'
                                 value={newPaireeName}
@@ -160,12 +166,17 @@ export const Pairees = (): JSX.Element => {
                             />
                         </Box>
                         {newPaireeError && (
-                            <Typography variant='caption' color='error.main'>
+                            <Typography
+                                data-cy="pairee-add-error"
+                                variant='caption'
+                                color='error.main'
+                            >
                                 Pairee name already exists.
                             </Typography>
                         )}
                         <Box my={2}>
                             <LoadingButton
+                                data-cy="add-pairee"
                                 variant='contained'
                                 disabled={newPaireeName.length < 2 || addingPairee}
                                 onClick={add}
@@ -180,7 +191,10 @@ export const Pairees = (): JSX.Element => {
                     autoHideDuration={3000}
                     onClose={() => setPaireeDeleted(false)}
                 >
-                    <Alert severity='success'>
+                    <Alert
+                        data-cy="deleted-pairee-alert"
+                        severity='success'
+                    >
                         Pairee deleted successfully
                     </Alert>
                 </Snackbar>
@@ -189,7 +203,10 @@ export const Pairees = (): JSX.Element => {
                     autoHideDuration={3000}
                     onClose={() => setPaireeAdded(false)}
                 >
-                    <Alert severity='success'>
+                    <Alert
+                        data-cy="new-pairee-alert"
+                        severity='success'
+                    >
                         Pairee added successfully
                     </Alert>
                 </Snackbar>

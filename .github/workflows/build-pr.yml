@@ -1,4 +1,4 @@
-name: Build App on Pull Request
+name: Build and Test App in PRs
 'on':
   pull_request:
     branches:
@@ -7,6 +7,47 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - name: Build
         run: yarn && yarn build
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Cache dependencies
+      id: cache-dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          **/node_modules
+          **/.cache/Cypress
+          **/.cache/firebase/emulators
+        key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+    - name: Install Dependencies
+      run: yarn
+    # - name: Cache emulators binary
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: |
+    #       **/.cache/firebase/emulators
+    #     key: ${{ runner.os }}
+    - name: Install Cypress binary
+      run: npx cypress install
+      if: steps.cache-dependencies.outputs.cache-hit == 'true'
+    - name: Test
+      run: yarn ci
+      env:
+        REACT_APP_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        REACT_APP_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+        REACT_APP_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        REACT_APP_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+        REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+        REACT_APP_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+        NODE_ENV: development
+        REACT_APP_DATA_SOURCE: emulators

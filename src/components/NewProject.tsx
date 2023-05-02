@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
+import Grid2 from '@mui/material/Unstable_Grid2'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import IconButton from '@mui/material/IconButton'
 import pearImg from '../images/pear.png'
@@ -28,6 +28,7 @@ export const NewProject = (): JSX.Element => {
         setCreating(true)
         setNameError(null)
 
+        // TODO: remove this check since Auth no longer prevents these characters.
         const invalidChar = projectName.match(/[@(),]/)
         if (invalidChar) {
             setNameError(`Project name contains an invalid character: "${invalidChar}"`)
@@ -72,12 +73,16 @@ export const NewProject = (): JSX.Element => {
                     alt="pear gif"
                     width={200}
                 />
-                <Typography variant='h6' pt={3}>
+                <Typography
+                    data-cy="page-header"
+                    variant='h6'
+                    pt={3}
+                >
                     Create a project
                 </Typography>
                 <TextField
+                    data-cy="project-name"
                     fullWidth
-                    id="project-name"
                     placeholder='Project Name (at least 2 chars)'
                     variant='outlined'
                     sx={{ width: 300 }}
@@ -86,8 +91,8 @@ export const NewProject = (): JSX.Element => {
                     onKeyUp={onEnter}
                 />
                 <TextField
+                    data-cy="project-password"
                     fullWidth
-                    id="project-password"
                     type="password"
                     placeholder='Password (at least 6 chars)'
                     variant='outlined'
@@ -97,11 +102,16 @@ export const NewProject = (): JSX.Element => {
                     onKeyUp={onEnter}
                 />
                 {nameError && (
-                    <Typography variant='body1' color='red'>
+                    <Typography
+                        data-cy="new-project-error"
+                        variant='body1'
+                        color='red'
+                    >
                         {nameError}
                     </Typography>
                 )}
                 <LoadingButton
+                    data-cy="submit"
                     variant="contained"
                     sx={{ width: 300 }}
                     disabled={projectName.length < 2 || projectPassword.length < 6}

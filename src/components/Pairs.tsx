@@ -5,7 +5,7 @@ import Divider from '@mui/material/Divider'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
+import Grid2 from '@mui/material/Unstable_Grid2'
 import { usePairminatorContext } from '../context/PairminatorContext'
 import { Pair, Pairee } from '../models/interface'
 import { PairingState } from '../models/enum'
@@ -48,7 +48,10 @@ export const Pairs = (): JSX.Element => {
 
       {pairingState === PairingState.INITIAL && (
         <>
-          <Typography variant='body1'>
+          <Typography
+            data-cy="no-current-pairs-label"
+            variant='body1'
+          >
             No pairs have been assigned yet.
           </Typography>
           <Divider sx={{ my: 3 }} />
@@ -98,10 +101,14 @@ export const Pairs = (): JSX.Element => {
                     borderRight={index < (currentPairs.length-1) ? '2px dashed grey' : 'none'}
                     pr={2}
                   >
-                    <Typography variant='subtitle1'>
+                    <Typography
+                      data-cy="lane-name"
+                      variant='subtitle1'
+                    >
                       {lane.name}
                     </Typography>
                     <Chip
+                      data-cy="pairee1-name"
                       size='medium'
                       label={pairee1.name}
                       variant='filled'
@@ -109,6 +116,7 @@ export const Pairs = (): JSX.Element => {
                     />
                     {pairee2 && (
                       <Chip
+                      data-cy="pairee2-name"
                         size='medium'
                         label={pairee2.name}
                         variant='filled'
@@ -127,6 +135,7 @@ export const Pairs = (): JSX.Element => {
         {pairingState && [PairingState.INITIAL, PairingState.ASSIGNING].includes(pairingState) && (
           <Stack direction='row' alignItems='center' spacing={2}>
             <Button
+              data-cy="assign-pairs-button"
               color="info"
               variant='contained'
               size='large'
@@ -147,6 +156,7 @@ export const Pairs = (): JSX.Element => {
         )}
         {pairingState === PairingState.ASSIGNED && (
           <Button
+            data-cy="record-pairs-button"
             color="secondary"
             variant='contained'
             size='large'
@@ -173,7 +183,10 @@ export const Pairs = (): JSX.Element => {
         autoHideDuration={3000}
         onClose={() => setPairsRecorded(false)}
       >
-        <Alert severity='success'>
+        <Alert
+          data-cy="recorded-pairs-alert"
+          severity='success'
+        >
           Pairs recorded
         </Alert>
       </Snackbar>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
-import Grid2 from '@mui/material/Unstable_Grid2/Grid2'
+import Grid2 from '@mui/material/Unstable_Grid2'
 import Button from '@mui/material/Button'
 import { useNavigate } from 'react-router'
 import Divider from '@mui/material/Divider'
@@ -95,6 +95,7 @@ export const ProjectLogin = (): JSX.Element => {
         </LoadingButton>
         <Divider sx={{ my: 4 }} />
         <Button
+          data-cy="create-project-button"
           fullWidth
           variant='outlined'
           color='secondary'

@@ -6,7 +6,7 @@ import Toolbar from "@mui/material/Toolbar"
 import IconButton from "@mui/material/IconButton"
 import Button from "@mui/material/Button"
 import Container from "@mui/system/Container"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid2 from "@mui/material/Unstable_Grid2"
 import Stack from "@mui/system/Stack"
 import Snackbar from "@mui/material/Snackbar"
 import Alert from "@mui/material/Alert"
@@ -47,10 +47,13 @@ export const PairminatorApp = (): JSX.Element => {
             </Stack>
             {project && (
               <Stack direction='row' spacing={2} alignItems='center'>
-                <Typography>
+                <Typography
+                  data-cy="current-project-name"
+                >
                   {project.name}
                 </Typography>
                 <Button
+                  data-cy="sign-out"
                   variant="text"
                   color="inherit"
                   onClick={logout}
