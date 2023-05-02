@@ -38,7 +38,9 @@ export const PaireeDeleteModal = ({
         <Dialog open={open} onClose={() => handleClose()}>
             <DialogTitle>Confirmation</DialogTitle>
             <DialogContent>
-                <DialogContentText>
+                <DialogContentText
+                    data-cy="delete-modal-text"
+                >
                     Remove <b>{pairee.name}</b> from pairees?
                 </DialogContentText>
                 {!canHardDelete && (
@@ -55,6 +57,7 @@ export const PaireeDeleteModal = ({
                     Cancel
                 </Button>
                 <Button
+                    data-cy="pairee-confirm-delete-button"
                     color="error"
                     variant="contained"
                     onClick={() => handleClose(pairee.id)}

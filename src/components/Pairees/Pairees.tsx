@@ -66,6 +66,7 @@ export const Pairees = (): JSX.Element => {
         return (
             <>
                 <ListItem
+                    data-cy={`pairee-row-${pairee.name}`}
                     onMouseEnter={() => setHovering(true)}
                     onMouseLeave={() => setHovering(false)}
                     key={pairee.id}
@@ -81,6 +82,7 @@ export const Pairees = (): JSX.Element => {
                                 }
                             >
                                 <IconButton
+                                    data-cy="pairee-delete-button"
                                     aria-label="delete"
                                     onClick={() => {
                                         if (project?.pairingStatus !== PairingState.ASSIGNED) {
@@ -189,7 +191,10 @@ export const Pairees = (): JSX.Element => {
                     autoHideDuration={3000}
                     onClose={() => setPaireeDeleted(false)}
                 >
-                    <Alert severity='success'>
+                    <Alert
+                        data-cy="deleted-pairee-alert"
+                        severity='success'
+                    >
                         Pairee deleted successfully
                     </Alert>
                 </Snackbar>

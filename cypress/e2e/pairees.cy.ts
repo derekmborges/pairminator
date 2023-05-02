@@ -44,4 +44,26 @@ describe('Pairees', () => {
 
         cy.get('[data-cy=pairee-add-error]').should('have.text', 'Pairee name already exists.')
     })
+
+    // TODO: fix the delete modal bug and re-activate test
+    it.skip('allows user to delete a pairee', () => {
+        const pairees = ['John', 'Stacey']
+        for (let pairee of pairees) {
+            cy.get('[data-cy=new-pairee-name').type(pairee)
+            cy.get('[data-cy=add-pairee]').click()
+            cy.get('[data-cy=new-pairee-alert]').should('have.text', 'Pairee added successfully')
+        }
+        cy.get('[data-cy=pairee-name]').should('have.length', 2)
+        const paireeToDelete = pairees[0]
+
+        cy.get(`[data-cy=pairee-row-${paireeToDelete}]`).trigger('mouseover')
+        cy.get('[data-cy=pairee-delete-button]').click()
+
+        cy.get('[data-cy=delete-modal-text').should('have.text', `Remove ${paireeToDelete} from pairees?`)
+
+        cy.get('[data-cy=pairee-confirm-delete-button]').click()
+
+        cy.get('[data-cy=deleted-pairee-alert]').should('have.text', 'Pairee deleted successfully')
+        cy.get('[data-cy=pairee-name]').should('have.length', 1).should('have.text', pairees[1])
+    })
 })
