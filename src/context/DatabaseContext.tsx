@@ -36,10 +36,11 @@ export interface ProviderProps {
 }
 
 export const COLLECTION_PROJECTS = 'projects'
-export const COLLECTION_PAIREES = 'pairees'
-export const COLLECTION_LANES = 'lanes'
-export const COLLECTION_CURRENT_PAIRS = 'currentPairs'
-export const COLLECTION_HISTORY = 'history'
+export const SUBCOLLECTION_PAIREES = 'pairees'
+export const SUBCOLLECTION_LANES = 'lanes'
+export const SUBCOLLECTION_CURRENT_PAIRS = 'currentPairs'
+export const SUBCOLLECTION_HISTORY = 'history'
+export const SUBCOLLECTION_PAIRMAN = 'pairman'
 
 export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
 
@@ -59,7 +60,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
     const handleAddPairee = async (projectId: string, name: string): Promise<boolean> => {
         try {
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
-            const paireeRef = await addDoc(collection(projectRef, COLLECTION_PAIREES), {})
+            const paireeRef = await addDoc(collection(projectRef, SUBCOLLECTION_PAIREES), {})
             const newPairee: Pairee = {
                 id: paireeRef.id,
                 name,
@@ -76,7 +77,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
 
     const handleUpdatePairee = async (projectId: string, pairee: Pairee): Promise<boolean> => {
         try {
-            const paireeRef = doc(database, COLLECTION_PROJECTS, projectId, COLLECTION_PAIREES, pairee.id).withConverter(paireeConverter)
+            const paireeRef = doc(database, COLLECTION_PROJECTS, projectId, SUBCOLLECTION_PAIREES, pairee.id).withConverter(paireeConverter)
             await updateDoc(paireeRef, pairee)
             return true
         } catch (e) {
@@ -87,7 +88,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
 
     const handleDeactivatePairee = async (projectId: string, paireeId: string): Promise<boolean> => {
         try {
-            const paireeDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId, COLLECTION_PAIREES, paireeId).withConverter(paireeConverter))
+            const paireeDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId, SUBCOLLECTION_PAIREES, paireeId).withConverter(paireeConverter))
             const pairee = paireeDoc.data()
             if (pairee) {
                 await updateDoc(paireeDoc.ref, {
@@ -105,7 +106,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
 
     const handleDeletePairee = async (projectId: string, paireeId: string): Promise<boolean> => {
         try {
-            const paireeDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId, COLLECTION_PAIREES, paireeId).withConverter(paireeConverter))
+            const paireeDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId, SUBCOLLECTION_PAIREES, paireeId).withConverter(paireeConverter))
             const pairee = paireeDoc.data()
             if (pairee) {
                 await deleteDoc(paireeDoc.ref)
@@ -122,13 +123,13 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         try {
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
 
-            const lanesSnapshot = await getDocs(query(collection(projectRef, COLLECTION_LANES), orderBy("number")).withConverter(laneConverter))
+            const lanesSnapshot = await getDocs(query(collection(projectRef, SUBCOLLECTION_LANES), orderBy("number")).withConverter(laneConverter))
             const existingLanes = lanesSnapshot.size
 
             if (lanesNeeded > existingLanes) {
                 // Add missing lanes
                 for (let i = existingLanes+1; i <= lanesNeeded; i++) {
-                    const laneRef = await addDoc(collection(projectRef, COLLECTION_LANES), {})
+                    const laneRef = await addDoc(collection(projectRef, SUBCOLLECTION_LANES), {})
                     const newLane: Lane = {
                         id: laneRef.id,
                         name: `Lane ${i}`,
@@ -149,10 +150,10 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
             if (pairs) {
                 for (let pair of pairs) {
-                    await addDoc(collection(projectRef, COLLECTION_CURRENT_PAIRS), pair)
+                    await addDoc(collection(projectRef, SUBCOLLECTION_CURRENT_PAIRS), pair)
                 }
             } else {
-                const currentPairsQuery = query(collection(projectRef, COLLECTION_CURRENT_PAIRS)).withConverter(pairConverter)
+                const currentPairsQuery = query(collection(projectRef, SUBCOLLECTION_CURRENT_PAIRS)).withConverter(pairConverter)
                 const snapshot = await getDocs(currentPairsQuery)
                 snapshot.forEach(async (result) => await deleteDoc(result.ref))
             }
@@ -186,7 +187,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
     const handleRecordPairs = async (projectId: string, currentPairs: Pair[]): Promise<boolean> => {
         try {
             const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
-            const historyRecordRef = await addDoc(collection(projectRef, COLLECTION_HISTORY), {})
+            const historyRecordRef = await addDoc(collection(projectRef, SUBCOLLECTION_HISTORY), {})
             const newHistoryRecord: HistoryRecord = {
                 id: historyRecordRef.id,
                 pairs: currentPairs,
@@ -202,7 +203,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
 
     const handleDeleteHistoryRecord = async (projectId: string, historyId: string): Promise<boolean> => {
         try {
-            const historyRecordDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId, COLLECTION_HISTORY, historyId).withConverter(historyRecordConverter))
+            const historyRecordDoc = await getDoc(doc(database, COLLECTION_PROJECTS, projectId, SUBCOLLECTION_HISTORY, historyId).withConverter(historyRecordConverter))
             const historyRecord = historyRecordDoc.data()
             if (historyRecord) {
                 await deleteDoc(historyRecordDoc.ref)
