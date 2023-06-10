@@ -30,6 +30,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "emulators": "firebase emulators:start",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build -u 'github-actions-bot <support+actions@github.com>'",
     "test": "react-scripts test",
@@ -54,6 +55,7 @@
     ]
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.191"
+    "@types/lodash": "^4.14.191",
+    "firebase-tools": "^11.28.0"
   }
 }
