@@ -1,5 +1,5 @@
 import { DocumentSnapshot, SnapshotOptions } from "firebase/firestore";
-import { Lane, Pair, Pairee, Project } from "../models/interface";
+import { Lane, Pair, Pairee, PairmanRecord, Project } from "../models/interface";
 import { HistoryRecord } from '../models/interface'
 
 export const projectConverter = {
@@ -8,6 +8,7 @@ export const projectConverter = {
             id: project.id,
             name: project.name,
             pairingStatus: project.pairingStatus,
+            currentPairman: project.currentPairman,
         }
     },
     fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
@@ -16,7 +17,13 @@ export const projectConverter = {
             return {
                 id: data.id,
                 name: data.name,
-                pairingStatus: data.pairingStatus
+                pairingStatus: data.pairingStatus,
+                currentPairman: data.currentPairman
+                    ? {
+                        paireeId: data.currentPairman.paireeId,
+                        electionDate: data.currentPairman.electionDate.toDate(),
+                    } as PairmanRecord
+                    : null
             } as Project
         }
     }

@@ -51,6 +51,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
             id,
             name,
             pairingStatus: PairingState.INITIAL,
+            currentPairman: null
         }
         await setDoc(projectRef, newProject)
 

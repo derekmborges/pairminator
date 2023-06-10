@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react"
-import { HistoryRecord, Lane, Pair, Pairee, Project } from "../models/interface"
+import { HistoryRecord, Lane, Pair, Pairee, PairmanRecord, Project } from "../models/interface"
 import { PairingState } from "../models/enum"
 import { SUBCOLLECTION_CURRENT_PAIRS, SUBCOLLECTION_HISTORY, SUBCOLLECTION_LANES, SUBCOLLECTION_PAIREES, COLLECTION_PROJECTS, useDatabaseContext, SUBCOLLECTION_PAIRMAN } from "./DatabaseContext"
 import { useAuthContext } from "./AuthContext"
@@ -16,7 +16,6 @@ export interface PairminatorContextT {
     lanes: Lane[] | null
     currentPairs: Pair[] | null
     history: HistoryRecord[] | null
-    currentPairmanId: string | null
     addPairee: (name: string) => Promise<boolean>
     updatePairee: (updatedPairee: Pairee) => Promise<boolean>
     canHardDeletePairee: (paireeId: string) => Promise<boolean>
@@ -26,11 +25,13 @@ export interface PairminatorContextT {
     resetCurrentPairs: () => Promise<boolean>
     recordCurrentPairs: () => Promise<boolean>
     deleteHistoryRecord: (id: string) => Promise<boolean>
+    getSuggestedPairman: () => Pairee | undefined
+    assignPairman: (paireeId: string) => Promise<boolean>
 }
 
 export const PairminatorContext = createContext<PairminatorContextT | undefined>(undefined)
 
-export const usePairminatorContext  = () => {
+export const usePairminatorContext = () => {
     const context = useContext(PairminatorContext)
     if (context === undefined) {
         throw new Error('usePairminatorContext must be used within a Pairminator Provider')
@@ -75,11 +76,11 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             doc(database, COLLECTION_PROJECTS, projectId)
                 .withConverter(projectConverter),
             (doc: DocumentSnapshot<Project | undefined>) => {
-            const project = doc.data()
-            if (project) {
-                setProject(project)
-            }
-        });
+                const project = doc.data()
+                if (project) {
+                    setProject(project)
+                }
+            });
         return () => {
             console.log('unsubscribing from project document')
             unsub();
@@ -191,35 +192,6 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         }
     }
 
-    // TODO:
-    const [currentPairmanId, setCurrentPairmanId] = useState<string | null>(null)
-    // const subscribeCurrentPairman = (projectId: string) => {
-    //     if (project) {
-    //         console.log('watching currentPairman subcollection')
-    //         const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
-    //         const currentPairmanQuery = query(collection(projectRef, SUBCOLLECTION_CURRENT_PAIRMAN)).withConverter(pairConverter)
-    //         const unsub = onSnapshot(currentPairmanQuery, (querySnapshot: QuerySnapshot<Pair | undefined>) => {
-    //             console.log('current pairs updated')
-    //             let currentPairs: Pair[] = []
-    //             if (querySnapshot.empty) {
-    //                 setCurrentPairs(null)
-    //             } else {
-    //                 querySnapshot.forEach((result: QueryDocumentSnapshot<Pair | undefined>) => {
-    //                     const pair = result.data()
-    //                     if (pair) {
-    //                         currentPairs.push(pair)
-    //                     }
-    //                 })
-    //                 setCurrentPairs(currentPairs)
-    //             }
-    //         })
-    //         return () => {
-    //             console.log('unsubscribing from currentPairman subcollection')
-    //             unsub()
-    //         }
-    //     }
-    // }
-
     useEffect(() => {
         if (currentProjectId) {
             const unsub = subscribeProjectData(currentProjectId)
@@ -256,7 +228,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                 })
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watchData])
 
     const addPairee = async (name: string): Promise<boolean> => {
@@ -308,6 +280,32 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         return false
     }
 
+    const getSuggestedPairman = (): Pairee | undefined => {
+        if (project && activePairees) {
+            if (project.currentPairman) {
+                // TODO: get least recent ID
+            } else {
+                const randomIndex = Math.floor(Math.random() * activePairees.length);
+                const randomPairee = activePairees[randomIndex]
+                return randomPairee
+            }
+        }
+    }
+
+    const assignPairman = async (paireeId: string): Promise<boolean> => {
+        if (project) {
+            const newPairman: PairmanRecord = {
+                paireeId,
+                electionDate: new Date()
+            }
+            return await handleUpdateProject({
+                ...project,
+                currentPairman: newPairman
+            })
+        }
+        return false
+    }
+
     const [lanesNeeded, setLanesNeeded] = useState<number>(0)
 
     useEffect(() => {
@@ -316,7 +314,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             const lanesNeeded: number = Math.ceil(availablePairees.length / 2)
             setLanesNeeded(lanesNeeded)
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activePairees])
 
     useEffect(() => {
@@ -387,7 +385,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                         if (a[1].count !== b[1].count) {
                             return a[1].count - b[1].count
 
-                        // Then sort by last paired date (asc)
+                            // Then sort by last paired date (asc)
                         } else {
                             return a[1].lastDate.valueOf() - b[1].lastDate.valueOf()
                         }
@@ -421,15 +419,15 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
             const isAvailable = (id: string): boolean => available.some(p => p.id === id)
             const addPair = (pairee1: Pairee, pairee2: Pairee | undefined) => {
                 const lane = freeLanes[0]
-    
+
                 console.log('assignment:', pairee1.name, '+', pairee2?.name || 'solo')
                 const pair: Pair = {
                     pairee1Id: pairee1.id,
-                    ...(pairee2 && {pairee2Id: pairee2.id}),
+                    ...(pairee2 && { pairee2Id: pairee2.id }),
                     laneId: lane.id
                 }
                 pairs.push(pair)
-    
+
                 // remove used data
                 freeLanes.splice(0, 1)
                 available.splice(available.indexOf(pairee1), 1)
@@ -437,26 +435,26 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                     available.splice(available.indexOf(pairee2), 1)
                 }
             }
-    
+
             const sortedPairHistoryMap = getAvailablePairHistoryMap()
             console.log('the sorted history map:')
             console.log(sortedPairHistoryMap)
-    
+
             while (freeLanes.length) {
                 let pairee1
                 let pairee2
-    
+
                 if (available.length > 1) {
                     // loop over and prioritize the least-paired entries first
                     for (let pairString of sortedPairHistoryMap.keys()) {
                         // Get pairee IDs
                         const paireeIds = pairString.split('-')
-    
+
                         // If either aren't available to pair, move on
                         if (paireeIds.some(id => !isAvailable(id))) {
                             continue
                         }
-    
+
                         pairee1 = available.find(p => p.id === paireeIds[0])
                         pairee2 = available.find(p => p.id === paireeIds[1])
                         break
@@ -464,7 +462,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                 } else {
                     pairee1 = available[0]
                 }
-    
+
                 if (pairee1) {
                     addPair(pairee1, pairee2)
                 }
@@ -519,7 +517,6 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         lanes,
         currentPairs,
         history,
-        currentPairmanId,
         addPairee,
         updatePairee,
         canHardDeletePairee,
@@ -529,6 +526,8 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         resetCurrentPairs,
         recordCurrentPairs,
         deleteHistoryRecord,
+        getSuggestedPairman,
+        assignPairman,
     }
 
     return (
