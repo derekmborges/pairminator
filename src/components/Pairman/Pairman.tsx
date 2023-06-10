@@ -30,37 +30,43 @@ export const Pairman = (): JSX.Element => {
     const pairmanName: string | undefined = activePairees?.find(p => p.id === project?.currentPairman?.paireeId)?.name
 
     return (
-        <Paper
-            component={Box}
-            mb={1}
-            p={2}
-            display="flex"
-            flexWrap="wrap"
-            flexDirection="row"
-            justifyContent="space-between"
-            alignItems="center"
-        >
-            <Box display="flex" flexDirection="row" alignItems="center">
-                <Typography component="h2" variant="h6" color="secondary" mr={1}>
-                    Pairman:
-                </Typography>
-                <Typography component="h2" variant="h6" color="gray">
-                    {pairmanName || 'Unassigned'}
-                </Typography>
-                <Tooltip title={pairmanName ? 'Overthrow pairman' : 'Magically assign'}>
-                    <IconButton
-                        color="success"
-                        onClick={() => setOpenAssignModal(true)}
-                    >
-                        {pairmanName ? <RefreshIcon /> : <AutoFixHighIcon />}
-                    </IconButton>
-                </Tooltip>
+        <Paper component={Box} mb={1} p={2}>
+            <Box display="flex" flexDirection="column">
+                <Box
+                    display="flex"
+                    flexWrap="wrap"
+                    flexDirection="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                >
+                    <Box display="flex" flexDirection="row" alignItems="center">
+                        <Typography component="h2" variant="h6" color="secondary" mr={1}>
+                            Pairman:
+                        </Typography>
+                        <Typography component="h2" variant="h6" color="gray">
+                            {pairmanName || 'Unassigned'}
+                        </Typography>
+                        <Tooltip title={pairmanName ? 'Overthrow pairman' : 'Magically assign'}>
+                            <IconButton
+                                color="success"
+                                onClick={() => setOpenAssignModal(true)}
+                            >
+                                {pairmanName ? <RefreshIcon /> : <AutoFixHighIcon />}
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                    <Tooltip title="History">
+                        <IconButton color="info">
+                            <HistoryIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+                {project?.currentPairman && (
+                    <Typography variant='caption' mt={-1}>
+                        Since: {project.currentPairman.electionDate.toDateString()}
+                    </Typography>
+                )}
             </Box>
-            <Tooltip title="History">
-                <IconButton color="info">
-                    <HistoryIcon />
-                </IconButton>
-            </Tooltip>
 
             <PairmanAssignModal
                 open={openAssignModal}

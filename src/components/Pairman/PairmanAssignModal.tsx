@@ -33,6 +33,12 @@ export const PairmanAssignModal = ({
         setLoading(false)
     }, [getSuggestedPairman])
 
+    useEffect(() => {
+        if (open) {
+            setSaving(false)
+        }
+    }, [open])
+
     const confirmElection = () => {
         setSaving(true)
         handleClose(suggestedPairman?.id)
