@@ -13,7 +13,7 @@ import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 
 export const Pairman = (): JSX.Element => {
-    const { project, activePairees, assignPairman } = usePairminatorContext()
+    const { project, activePairees, pairmanHistory, assignPairman } = usePairminatorContext()
 
     const [openAssignModal, setOpenAssignModal] = useState<boolean>(false)
     const [pairmanElected, setPairmanElected] = useState<boolean>(false)
@@ -27,6 +27,8 @@ export const Pairman = (): JSX.Element => {
     }
 
     const pairmanName: string | undefined = activePairees?.find(p => p.id === project?.currentPairman?.paireeId)?.name
+
+    const canAssign: boolean = !!activePairees?.length
 
     return (
         <Paper component={Box} mb={1} p={2}>
@@ -45,18 +47,23 @@ export const Pairman = (): JSX.Element => {
                         <Typography component="h2" variant="h6" color="gray">
                             {pairmanName || 'Unassigned'}
                         </Typography>
-                        <Tooltip title={pairmanName ? 'Elect new Pairman' : 'Magically assign'}>
+                        <Tooltip
+                            title={!canAssign
+                                ? 'Pairees must be added to assign a Pairman'
+                                : pairmanName ? 'Elect new Pairman' : 'Magically assign'
+                            }
+                        >
                             <IconButton
                                 color="success"
-                                onClick={() => setOpenAssignModal(true)}
+                                onClick={() => canAssign && setOpenAssignModal(true)}
                             >
-                                {pairmanName ? <CachedIcon /> : <AutoFixHighIcon />}
+                                {pairmanName ? <CachedIcon /> : <AutoFixHighIcon color={canAssign ? 'inherit' : 'disabled'} />}
                             </IconButton>
                         </Tooltip>
                     </Box>
-                    <Tooltip title="History">
+                    <Tooltip title={!!pairmanHistory?.length ? "View History" : "Continue electing Pairmen to see a history"}>
                         <IconButton color="info">
-                            <HistoryIcon />
+                            <HistoryIcon color={!!pairmanHistory?.length ? 'inherit' : 'disabled'} />
                         </IconButton>
                     </Tooltip>
                 </Box>
