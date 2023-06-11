@@ -8,7 +8,9 @@ export const projectConverter = {
             id: project.id,
             name: project.name,
             pairingStatus: project.pairingStatus,
-            currentPairman: project.currentPairman,
+            currentPairman: project.currentPairman
+                ? pairmanRecordConverter.toFirestore(project.currentPairman)
+                : null
         }
     },
     fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
@@ -116,6 +118,24 @@ export const historyRecordConverter = {
                 pairs: data.pairs.map((pair: any) => transformDataToPair(pair)),
                 date: data.date.toDate()
             } as HistoryRecord
+        }
+    }
+}
+
+export const pairmanRecordConverter = {
+    toFirestore: (pairmanRecord: PairmanRecord) => {
+        return {
+            paireeId: pairmanRecord.paireeId,
+            electionDate: pairmanRecord.electionDate
+        }
+    },
+    fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
+        const data = snapshot.data(options)
+        if (data) {
+            return {
+                paireeId: data.paireeId,
+                electionDate: data.electionDate.toDate()
+            } as PairmanRecord
         }
     }
 }

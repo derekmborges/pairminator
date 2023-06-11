@@ -3,11 +3,10 @@ import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import { usePairminatorContext } from '../../context/PairminatorContext'
-import { Pairee } from '../../models/interface'
 import IconButton from '@mui/material/IconButton'
-import RefreshIcon from '@mui/icons-material/Refresh'
+import CachedIcon from '@mui/icons-material/Cached'
 import HistoryIcon from '@mui/icons-material/History'
-import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import Tooltip from '@mui/material/Tooltip'
 import { PairmanAssignModal } from './PairmanAssignModal'
 import Snackbar from '@mui/material/Snackbar'
@@ -46,12 +45,12 @@ export const Pairman = (): JSX.Element => {
                         <Typography component="h2" variant="h6" color="gray">
                             {pairmanName || 'Unassigned'}
                         </Typography>
-                        <Tooltip title={pairmanName ? 'Overthrow pairman' : 'Magically assign'}>
+                        <Tooltip title={pairmanName ? 'Elect new Pairman' : 'Magically assign'}>
                             <IconButton
                                 color="success"
                                 onClick={() => setOpenAssignModal(true)}
                             >
-                                {pairmanName ? <RefreshIcon /> : <AutoFixHighIcon />}
+                                {pairmanName ? <CachedIcon /> : <AutoFixHighIcon />}
                             </IconButton>
                         </Tooltip>
                     </Box>

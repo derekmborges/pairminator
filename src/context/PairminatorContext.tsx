@@ -1,12 +1,12 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { HistoryRecord, Lane, Pair, Pairee, PairmanRecord, Project } from "../models/interface"
 import { PairingState } from "../models/enum"
-import { SUBCOLLECTION_CURRENT_PAIRS, SUBCOLLECTION_HISTORY, SUBCOLLECTION_LANES, SUBCOLLECTION_PAIREES, COLLECTION_PROJECTS, useDatabaseContext, SUBCOLLECTION_PAIRMAN } from "./DatabaseContext"
+import { SUBCOLLECTION_CURRENT_PAIRS, SUBCOLLECTION_HISTORY, SUBCOLLECTION_LANES, SUBCOLLECTION_PAIREES, COLLECTION_PROJECTS, useDatabaseContext, SUBCOLLECTION_PAIRMEN } from "./DatabaseContext"
 import { useAuthContext } from "./AuthContext"
 import { collection, DocumentSnapshot, onSnapshot, orderBy, QueryDocumentSnapshot, QuerySnapshot } from "@firebase/firestore"
 import { doc, query } from "firebase/firestore"
 import { database } from "../firebase"
-import { laneConverter, pairConverter, paireeConverter, projectConverter, historyRecordConverter } from "../lib/converter"
+import { laneConverter, pairConverter, paireeConverter, projectConverter, historyRecordConverter, pairmanRecordConverter } from "../lib/converter"
 import { cloneDeep } from "lodash"
 
 export interface PairminatorContextT {
@@ -16,6 +16,7 @@ export interface PairminatorContextT {
     lanes: Lane[] | null
     currentPairs: Pair[] | null
     history: HistoryRecord[] | null
+    pairmanHistory: PairmanRecord[] | null
     addPairee: (name: string) => Promise<boolean>
     updatePairee: (updatedPairee: Pairee) => Promise<boolean>
     canHardDeletePairee: (paireeId: string) => Promise<boolean>
@@ -55,6 +56,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         handleSetCurrentPairs,
         handleRecordPairs,
         handleDeleteHistoryRecord,
+        handleAddPairmanHistory,
     } = useDatabaseContext()
 
     const [project, setProject] = useState<Project | null>(null)
@@ -192,6 +194,33 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         }
     }
 
+    const [pairmanHistory, setPairmanHistory] = useState<PairmanRecord[] | null>(null)
+    const subscribePairmanHistory = (projectId: string) => {
+        if (project) {
+            console.log('watching pairmen subcollection')
+            const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
+            const pairmenQuery = query(
+                collection(projectRef, SUBCOLLECTION_PAIRMEN),
+                orderBy("electionDate", "desc")
+            ).withConverter(pairmanRecordConverter)
+            const unsub = onSnapshot(pairmenQuery, (querySnapshot: QuerySnapshot<PairmanRecord | undefined>) => {
+                console.log('pairmen history updated')
+                let pairmenHistory: PairmanRecord[] = []
+                querySnapshot.forEach((result: QueryDocumentSnapshot<PairmanRecord | undefined>) => {
+                    const record = result.data()
+                    if (record) {
+                        pairmenHistory.push(record)
+                    }
+                })
+                setPairmanHistory(pairmenHistory)
+            })
+            return () => {
+                console.log('unsubscribing from pairmen subcollection')
+                unsub()
+            }
+        }
+    }
+
     useEffect(() => {
         if (currentProjectId) {
             const unsub = subscribeProjectData(currentProjectId)
@@ -219,6 +248,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
                 subscribeLanes(project.id),
                 subscribeCurrentPairs(project.id),
                 subscribePairHistory(project.id),
+                subscribePairmanHistory(project.id),
             ]
             return () => {
                 unsubs.forEach(unsub => {
@@ -280,10 +310,32 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         return false
     }
 
+    type LastElectedPairee = {
+        pairee: Pairee,
+        lastElected?: Date
+    }
+
     const getSuggestedPairman = (): Pairee | undefined => {
         if (project && activePairees) {
             if (project.currentPairman) {
-                // TODO: get least recent ID
+                const lastElectedPairees: LastElectedPairee[] = activePairees.map(pairee => {
+                    const isCurrent = project.currentPairman?.paireeId === pairee.id
+                    const lastElected = pairmanHistory?.find(pm => pm.paireeId === pairee.id)?.electionDate
+                    return {
+                        pairee,
+                        lastElected: isCurrent ? project.currentPairman?.electionDate : lastElected
+                    } as LastElectedPairee
+                }).sort((a, b) =>
+                    a.lastElected && b.lastElected
+                        ? a.lastElected.valueOf() - b.lastElected.valueOf()
+                        : a.lastElected === undefined ? -1 : 1
+                )
+                console.log('last elected pairees:', lastElectedPairees)
+
+                if (lastElectedPairees.length) {
+                    return lastElectedPairees[0].pairee
+                }
+
             } else {
                 const randomIndex = Math.floor(Math.random() * activePairees.length);
                 const randomPairee = activePairees[randomIndex]
@@ -294,14 +346,22 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
 
     const assignPairman = async (paireeId: string): Promise<boolean> => {
         if (project) {
+            // If there's a currentPairman, add it to history first
+            let recordSuccess = true
+            if (project.currentPairman) {
+                recordSuccess =  await handleAddPairmanHistory(project.id, project.currentPairman)
+            }
+
             const newPairman: PairmanRecord = {
                 paireeId,
                 electionDate: new Date()
             }
-            return await handleUpdateProject({
+            const assignSuccess = await handleUpdateProject({
                 ...project,
                 currentPairman: newPairman
             })
+
+            return recordSuccess && assignSuccess
         }
         return false
     }
@@ -517,6 +577,7 @@ export const PairminatorProvider: React.FC<Props> = ({ children }) => {
         lanes,
         currentPairs,
         history,
+        pairmanHistory,
         addPairee,
         updatePairee,
         canHardDeletePairee,

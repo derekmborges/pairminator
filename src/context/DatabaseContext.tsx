@@ -2,9 +2,9 @@ import { addDoc, collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc }
 import { getDoc, orderBy } from "firebase/firestore";
 import { createContext, useContext } from "react";
 import { database } from "../firebase";
-import { laneConverter, pairConverter, paireeConverter, projectConverter, historyRecordConverter } from "../lib/converter";
+import { laneConverter, pairConverter, paireeConverter, projectConverter, historyRecordConverter, pairmanRecordConverter } from "../lib/converter";
 import { PairingState } from "../models/enum";
-import { Lane, Pair, Pairee, Project, HistoryRecord } from "../models/interface";
+import { Lane, Pair, Pairee, Project, HistoryRecord, PairmanRecord } from "../models/interface";
 
 
 interface DatabaseContextT {
@@ -19,6 +19,7 @@ interface DatabaseContextT {
     handleSetCurrentPairs: (projectId: string, pairs: Pair[] | null) => Promise<boolean>
     handleRecordPairs: (projectId: string, currentPairs: Pair[]) => Promise<boolean>
     handleDeleteHistoryRecord: (projectId: string, historyId: string) => Promise<boolean>
+    handleAddPairmanHistory: (projectId: string, pairmanRecord: PairmanRecord) => Promise<boolean>
 }
 
 export const DatabaseContext = createContext<DatabaseContextT | undefined>(undefined);
@@ -40,7 +41,7 @@ export const SUBCOLLECTION_PAIREES = 'pairees'
 export const SUBCOLLECTION_LANES = 'lanes'
 export const SUBCOLLECTION_CURRENT_PAIRS = 'currentPairs'
 export const SUBCOLLECTION_HISTORY = 'history'
-export const SUBCOLLECTION_PAIRMAN = 'pairman'
+export const SUBCOLLECTION_PAIRMEN = 'pairmen'
 
 export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
 
@@ -217,6 +218,18 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     }
 
+    const handleAddPairmanHistory = async (projectId: string, pairmanRecord: PairmanRecord): Promise<boolean> => {
+        try {
+            const projectRef = doc(database, COLLECTION_PROJECTS, projectId)
+            const pairmanRecordRef = await addDoc(collection(projectRef, SUBCOLLECTION_PAIRMEN), {})
+            await setDoc(pairmanRecordRef.withConverter(pairmanRecordConverter), pairmanRecord)
+            return true
+        } catch (e) {
+            console.error('Error adding pairman record to history:', e)
+            return false
+        }
+    }
+
     const contextValue: DatabaseContextT = {
         handleAddProject,
         handleGetProject,
@@ -229,6 +242,7 @@ export const DatabaseProvider: React.FC<ProviderProps> = ({ children }) => {
         handleSetCurrentPairs,
         handleRecordPairs,
         handleDeleteHistoryRecord,
+        handleAddPairmanHistory,
     }
 
     return (

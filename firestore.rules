@@ -17,6 +17,9 @@ service cloud.firestore {
       match /history/{document=**} {
         allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
       }
+      match /pairmen/{document=**} {
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }
