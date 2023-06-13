@@ -1,5 +1,5 @@
 import { DocumentSnapshot, SnapshotOptions } from "firebase/firestore";
-import { Lane, Pair, Pairee, Project } from "../models/interface";
+import { Lane, Pair, Pairee, PairmanRecord, Project } from "../models/interface";
 import { HistoryRecord } from '../models/interface'
 
 export const projectConverter = {
@@ -8,6 +8,9 @@ export const projectConverter = {
             id: project.id,
             name: project.name,
             pairingStatus: project.pairingStatus,
+            currentPairman: project.currentPairman
+                ? pairmanRecordConverter.toFirestore(project.currentPairman)
+                : null
         }
     },
     fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
@@ -16,7 +19,13 @@ export const projectConverter = {
             return {
                 id: data.id,
                 name: data.name,
-                pairingStatus: data.pairingStatus
+                pairingStatus: data.pairingStatus,
+                currentPairman: data.currentPairman
+                    ? {
+                        paireeId: data.currentPairman.paireeId,
+                        electionDate: data.currentPairman.electionDate.toDate(),
+                    } as PairmanRecord
+                    : null
             } as Project
         }
     }
@@ -109,6 +118,24 @@ export const historyRecordConverter = {
                 pairs: data.pairs.map((pair: any) => transformDataToPair(pair)),
                 date: data.date.toDate()
             } as HistoryRecord
+        }
+    }
+}
+
+export const pairmanRecordConverter = {
+    toFirestore: (pairmanRecord: PairmanRecord) => {
+        return {
+            paireeId: pairmanRecord.paireeId,
+            electionDate: pairmanRecord.electionDate
+        }
+    },
+    fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
+        const data = snapshot.data(options)
+        if (data) {
+            return {
+                paireeId: data.paireeId,
+                electionDate: data.electionDate.toDate()
+            } as PairmanRecord
         }
     }
 }

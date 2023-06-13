@@ -25,8 +25,14 @@ export interface HistoryRecord {
     date: Date
 }
 
+export interface PairmanRecord {
+    paireeId: string
+    electionDate: Date
+}
+
 export interface Project {
     id: string
     name: string
     pairingStatus: PairingState
+    currentPairman: PairmanRecord | null
 }
