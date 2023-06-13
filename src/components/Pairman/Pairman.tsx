@@ -11,9 +11,12 @@ import Tooltip from '@mui/material/Tooltip'
 import { PairmanAssignModal } from './PairmanAssignModal'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
+import { PairmanHistoryModal } from './PairmanHistoryModal'
 
 export const Pairman = (): JSX.Element => {
     const { project, activePairees, pairmanHistory, assignPairman } = usePairminatorContext()
+
+    const [openHistoryModal, setOpenHistoryModal] = useState<boolean>(false)
 
     const [openAssignModal, setOpenAssignModal] = useState<boolean>(false)
     const [pairmanElected, setPairmanElected] = useState<boolean>(false)
@@ -27,7 +30,6 @@ export const Pairman = (): JSX.Element => {
     }
 
     const pairmanName: string | undefined = activePairees?.find(p => p.id === project?.currentPairman?.paireeId)?.name
-
     const canAssign: boolean = !!activePairees?.length
 
     return (
@@ -62,8 +64,13 @@ export const Pairman = (): JSX.Element => {
                         </Tooltip>
                     </Box>
                     <Tooltip title={!!pairmanHistory?.length ? "View History" : "Continue electing Pairmen to see a history"}>
-                        <IconButton color="info">
-                            <HistoryIcon color={!!pairmanHistory?.length ? 'inherit' : 'disabled'} />
+                        <IconButton
+                            color="info"
+                            onClick={() => setOpenHistoryModal(true)}
+                        >
+                            <HistoryIcon
+                                color={!!pairmanHistory?.length ? 'inherit' : 'disabled'}
+                            />
                         </IconButton>
                     </Tooltip>
                 </Box>
@@ -87,6 +94,11 @@ export const Pairman = (): JSX.Element => {
                     Pairman elected successfully
                 </Alert>
             </Snackbar>
+
+            <PairmanHistoryModal
+                open={openHistoryModal}
+                handleClose={() => setOpenHistoryModal(false)}
+            />
         </Paper>
     )
 }
