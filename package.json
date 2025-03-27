@@ -18,7 +18,7 @@
     "@types/react": "^18.1.0",
     "@types/react-dom": "^18.1.0",
     "firebase": "^9.18.0",
-    "gh-pages": "^5.1.0",
+    "gh-pages": "^5.0.0",
     "lodash": "^4.17.22",
     "react": "^18.2.1",
     "react-dom": "^18.2.1",
